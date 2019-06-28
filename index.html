@@ -1,12 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+
+    <title>Hold My Beer</title>
+
+    <!-- Inset link tag here for reset.css depending on framework chosen -->
+    <!-- Also need to create the reset.css if need be in assets/css -->
+
+    <!-- Insert link tag here to CSS framework of choice -->
+    <!-- For now we've got Bootstrap, but we can change it if we want -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <!-- Link to our personal styles -->
+    <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+
 </head>
+
 <body>
-    
+    <div class="container-fluid">
+        <div class="jumbotron">
+            <h1>Hold My Beer</h1>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-6" id="parameterSelect">
+                <h2>Where are you going?</h2>
+                <form>
+                    <div class="form-group">
+                        <label for="locality">Locality (city or county):</label>
+                        <input type="text" class="form-control" id="locality">
+                        <small id="localityInfo" class="form-text text-muted">Leave this blank if you want to see
+                            results for the whole state.</small>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" id="state">
+                            <!-- Added just a few states for proof of concept -->
+                            <option selected>State:</option>
+                            <option>VA</option>
+                            <option>MD</option>
+                            <option>NC</option>
+                        </select>
+                    </div>
+                    <label for="beerSelect">What kind of beer do you like?</label>
+                    <div class="form-group" id="beerSelect">
+                        <!-- We could go different ways with this next one -->
+                        <!-- Right now I have it set up as a list of checkboxes -->
+                        <!-- We could do a list of radio buttons (only allow a single input), -->
+                        <!-- a select menu (like above for state), -->
+                        <!-- or a multiple-select menu (see Bootstrap docs) -->
+                        <!-- There's also the option of having a JS-powered dropdown menu ala Bootstrap -->
+                        <!-- And finally, we could revisit the idea of having them displayed as a grid of buttons -->
+                        <!-- Again, added just a few for proof of concept -->
+                        <div class="custom-control custom-checkbox" id="ipaSelect">
+                            <input type="checkbox" class="custom-control-input" id="ipa">
+                            <label class="custom-control-label" for="ipa">IPA</label>
+                        </div>
+                        <div class="custom-control custom-checkbox" id="stoutSelect">
+                            <input type="checkbox" class="custom-control-input" id="stout">
+                            <label class="custom-control-label" for="stout">Stout</label>
+                        </div>
+                        <div class="custom-control custom-checkbox" id="lagerSelect">
+                            <input type="checkbox" class="custom-control-input" id="lager">
+                            <label class="custom-control-label" for="lager">Lager</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-sm-6" id="dataOutput">
+                <div class="row">
+                    <!-- Filler div to apply buffer space -->
+                    <div class="col-1"></div>
+                    <div class="col-10" id="mapDisplay">
+                        <h1>I'm the map, I'm the map.</h1>
+                    </div>
+                    <!-- Another filler div to apply buffer space -->
+                    <div class="col-1"></div>
+                </div>
+                <div class="row">
+                    <!-- Filler div to apply buffer space -->
+                    <div class="col-2"></div>
+                    <!-- Content div with information about breweries, accomodations, etc. TBD -->
+                    <div class="col-8" id="infoDisplay">
+                        <h3>Information would appear here after map is generated.</h3>
+                    </div>
+                    <!-- Another filler div to apply buffer space -->
+                    <div class="col-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky footer that will never come above the bottom of the page -->
+    <footer>
+        <p>Team Firefoxes</p>
+    </footer>
+
+
+    <!-- link to jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Link to popper.js library for dropdown menus -->
+    <!-- Not currently necessary, only if we want to use the DROPDOWN component -->
+    <!-- Which is different from a select menu under the FORMS components -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+
+    <!-- Link to Bootstrap's JS library (also for dropdown menus) -->
+    <!-- Not currently necessary, only if we want to use the DROPDOWN component -->
+    <!-- Which is different from a select menu under the FORMS components -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+    <!-- link to our app-specific JavaScript -->
+    <script src="assets/javascript/logic.js"></script>
+
 </body>
+
 </html>
