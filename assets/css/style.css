@@ -3,17 +3,9 @@ body {
     text-align: center;
 }
 
-.container {
-    min-height: 100vh;
-    margin-bottom: -60px;
-    padding-bottom: -60px;
+.columns {
+    margin: 10px;
 }
-
-.jumbotron {
-    background: #000;
-    color: #fff;
-}
-
 #parameterSelect {
     text-align: left;
 }
