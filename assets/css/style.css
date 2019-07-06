@@ -5,7 +5,7 @@
 }
 
 .columns {
-  margin: 2px;
+  margin: -5px 0 5px 0;
 }
 
 #parameterSelect {
@@ -24,6 +24,7 @@
   font-size: 12pt;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   font-weight: 600;
+  margin: 20px 0 20px 0;
 }
 
 #all {
@@ -32,7 +33,7 @@
 }
 
 #map {
-  border: 1px solid hsl(0, 71%, 8%, 0.3);
+  border: 1px solid rgba(14, 3, 3, 0.2);
   height: 400px;
   width: 100%;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -41,7 +42,7 @@
 }
 
 #infoDisplay {
-  margin: 20px;
+  margin: 20px 0 0 5px;
 }
 
 #header {
@@ -51,6 +52,10 @@
 #header-text, #subtitle {
   color: hsl(0, 71%, 8%);
   text-align: center;
+}
+
+#header-text {
+  font-weight: 700;
 }
 
 footer  {
@@ -65,7 +70,7 @@ footer  {
 
 footer p {
   margin: auto 0;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   position: absolute;
   top: 10%;
   bottom: 25%;
