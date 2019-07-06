@@ -43,6 +43,7 @@
 
 #infoDisplay {
   margin: 20px 0 0 5px;
+  color: hsl(0, 71%, 8%);  
 }
 
 #header {
