@@ -64,23 +64,22 @@
         <div class="columns">
             <div class="column" id="parameterSelect">
                 <h2>Where are you going?</h2>
+                <div class="pac-card" id="pac-card">
+                    <div>
+                        <div id="title">
+                            Select City and State
+                        </div>
+                        <div id="infowindow-content">
+                            <img src="" width="16" height="16" id="place-icon">
+                            <span id="place-name" class="title"></span><br>
+                            <span id="place-address"></span>
+                        </div>
+                    </div>
+                    <div id="pac-container">
+                        <input id="pac-input" type="text" placeholder="Enter a location">
+                    </div>
+                </div>
                 <form>
-                    <div class="form-group">
-                        <label for="locality">Locality (city or county):</label>
-                        <input type="text" class="form-control" id="locality">
-                        <br>
-                        <small id="localityInfo" class="form-text text-muted">Leave this blank if you want to see
-                            results for the whole state.</small>
-                    </div>
-                    <div class="form-group">
-                        <select class="form-control" id="state">
-                            <!-- Added just a few states for proof of concept -->
-                            <option selected>State:</option>
-                            <option>VA</option>
-                            <option>MD</option>
-                            <option>NC</option>
-                        </select>
-                    </div>
                     <label for="beerSelect">What kind of beer do you like?</label>
                     <div class="form-group" id="beerSelect">
                         <!-- We could go different ways with this next one -->
@@ -112,8 +111,7 @@
             <div class="row">
                 <!-- Filler div to apply buffer space -->
                 <div class="col-1"></div>
-                <div class="col-10" id="mapDisplay">
-                    <h1>I'm the map, I'm the map.</h1>
+                <div class="col-10" id="map">
                 </div>
                 <!-- Another filler div to apply buffer space -->
                 <div class="col-1"></div>
@@ -139,6 +137,11 @@
 
     <!-- link to our app-specific JavaScript -->
     <script src="assets/javascript/logic.js"></script>
+
+    <!-- link to initialize the map -->
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU&libraries=places&callback=initMap"
+        async defer></script>
 
 </body>
 
