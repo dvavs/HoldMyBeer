@@ -10,39 +10,16 @@
 
 
     <!-- CSS LINKS-->
-
     <!-- Inset link tag here for reset.css depending on framework chosen -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
     <!-- Also need to create the reset.css if need be in assets/css -->
-
-    <!-- Insert link tag here to CSS framework of choice -->
-    <!-- For now we've got Bootstrap, but we can change it if we want <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">-->
-
-
     <!-- Link to our personal styles-->
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
 
-
     <!-- JAVASCRIPT LINKS -->
-
     <!-- link to jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-
-    <!-- Link to popper.js library for dropdown menus -->
-    <!-- Not currently necessary, only if we want to use the DROPDOWN component -->
-    <!-- Which is different from a select menu under the FORMS components -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-        crossorigin="anonymous"></script>
-
-    <!-- Link to Bootstrap's JS library (also for dropdown menus) -->
-    <!-- Not currently necessary, only if we want to use the DROPDOWN component -->
-    <!-- Which is different from a select menu under the FORMS components -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-        crossorigin="anonymous"></script>
 
 </head>
 
@@ -50,10 +27,10 @@
     <section class="hero is-warning is-bold">
         <div class="hero-body">
             <div class="container">
-                <h1 class="title is-1">
+                <h1 class="title is-1" id="header">
                     Hold My Beer!
                 </h1>
-                <h2 class="subtitle">
+                <h2 class="subtitle" id="subtitle">
                     Find your favorite beer near you
                 </h2>
             </div>
@@ -76,58 +53,42 @@
                         </div>
                     </div>
                     <div id="pac-container">
-                        <input id="pac-input" type="text" placeholder="Enter a location">
+                        <input class="input" id="pac-input" type="text" placeholder="Enter a location">
                     </div>
                 </div>
                 <form>
-                    <label for="beerSelect">What kind of beer do you like?</label>
+                    <label for="beerSelect">What kind of brewery are you interested in?</label>
+                    <p id="all">(Check all that apply)</p>
                     <div class="form-group" id="beerSelect">
-                        <!-- We could go different ways with this next one -->
-                        <!-- Right now I have it set up as a list of checkboxes -->
-                        <!-- We could do a list of radio buttons (only allow a single input), -->
-                        <!-- a select menu (like above for state), -->
-                        <!-- or a multiple-select menu (see Bootstrap docs) -->
-                        <!-- There's also the option of having a JS-powered dropdown menu ala Bootstrap -->
-                        <!-- And finally, we could revisit the idea of having them displayed as a grid of buttons -->
-                        <!-- Again, added just a few for proof of concept -->
                         <div class="custom-control custom-checkbox" id="ipaSelect">
                             <input type="checkbox" class="custom-control-input" id="ipa">
-                            <label class="custom-control-label" for="ipa">IPA</label>
+                            <label class="custom-control-label" for="brewPub">BrewPub</label>
                         </div>
                         <div class="custom-control custom-checkbox" id="stoutSelect">
                             <input type="checkbox" class="custom-control-input" id="stout">
-                            <label class="custom-control-label" for="stout">Stout</label>
+                            <label class="custom-control-label" for="micro">Micro</label>
                         </div>
                         <div class="custom-control custom-checkbox" id="lagerSelect">
                             <input type="checkbox" class="custom-control-input" id="lager">
-                            <label class="custom-control-label" for="lager">Lager</label>
+                            <label class="custom-control-label" for="regional">Regional</label>
+                        </div>
+                        <div class="custom-control custom-checkbox" id="lagerSelect">
+                            <input type="checkbox" class="custom-control-input" id="lager">
+                            <label class="custom-control-label" for="large">Domestic</label>
                         </div>
                     </div>
                 </form>
             </div>
-        </div>
 
-        <div class="column" id="dataOutput">
-            <div class="row">
-                <!-- Filler div to apply buffer space -->
-                <div class="col-1"></div>
-                <div class="col-10" id="map">
+            <div class="column" id="dataOutput">
+                <div id="map">
                 </div>
-                <!-- Another filler div to apply buffer space -->
-                <div class="col-1"></div>
-            </div>
-            <div class="row">
-                <!-- Filler div to apply buffer space -->
-                <div class="col-2"></div>
                 <!-- Content div with information about breweries, accomodations, etc. TBD -->
-                <div class="col-8" id="infoDisplay">
+                <div id="infoDisplay">
                     <h3>Information would appear here after map is generated.</h3>
                 </div>
-                <!-- Another filler div to apply buffer space -->
-                <div class="col-2"></div>
             </div>
         </div>
-    </div>
     </div>
 
     <!-- Sticky footer that will never come above the bottom of the page -->

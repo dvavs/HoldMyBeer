@@ -7,19 +7,32 @@ body {
     margin: 10px;
 }
 #parameterSelect {
-    text-align: left;
+  color: hsl(0, 71%, 8%);  
+  text-align: left;
+  font-size: 16pt;
+}
+
+#all {
+  font-size: 12pt;
+  margin-bottom: 5px;
 }
 
 #map {
-    margin: 0 auto;
     border: 1px solid #000;
     height: 400px;
     width: 300px;
-    position: relative;
 }
 
 #infoDisplay {
     margin: 20px;
+}
+
+#header {
+  color: hsl(0, 71%, 8%);
+}
+
+#subtitle {
+  color: hsl(0, 71%, 8%);
 }
 
 footer  {
@@ -41,7 +54,7 @@ footer p {
     transform: translateX(-50%);
 }
 
-/* CSS from Deb's autocomplete app */
+/* Google API css */
 
 #description {
     font-family: Roboto;
@@ -62,8 +75,8 @@ footer p {
   }
 
   .pac-card {
-    margin: 10px 10px 0 0;
-    width: 50%;
+    margin: 10px 10px 20px 0;
+    width: 100%;
     border-radius: 2px 0 0 2px;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -75,6 +88,7 @@ footer p {
 
   #pac-container {
     padding-bottom: 12px;
+    padding-right: 12px;
     margin-right: 12px;
   }
 
@@ -94,10 +108,11 @@ footer p {
     font-family: Roboto;
     font-size: 15px;
     font-weight: 300;
+    margin-top: 10px;
     margin-left: 12px;
     padding: 0 11px 0 13px;
     text-overflow: ellipsis;
-    width: 400px;
+    width: relative;
     height: 40px;
   }
 
@@ -106,8 +121,8 @@ footer p {
   }
 
   #title {
-    color: #fff;
-    background-color: #4d90fe;
+    color: hsl(0, 71%, 8%);
+    background-color: hsl(48, 100%, 67%);
     font-size: 25px;
     font-weight: 500;
     padding: 6px 12px;
