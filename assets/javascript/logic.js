@@ -2,128 +2,117 @@
 // parameter when you first load the API. For example:
 // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
 
+// Array to hold all brewery objects that fit the user's parameters
+let breweries = [];
+
+// Global ariable to hold the name of the city specified by the user
+let city = "";
+
+// Global variable to hold the name of the state specified by the user
+let state = "";
+
+// Global variable to hold the location query parameters for the OpenBreweryDB API search
+let locationQuery = "";
+
+// Array to house the brewery size specified by the user
+// Defaults to holding all of them, so that if a user doesn't choose any specific sizes it will search for all
+let brewerySize = ["brewpub", "micro", "regional", "large"];
+
+// Function to set the location query
+function setLocationQuery() {
+    // Temp variable to hold the city information
+    let cityLoc = "";
+    // If the user did in fact specify a cty...
+    if (city !== "") {
+        // Set cityLoc to a query string that will return breweries for that city
+        cityLoc = "&by_city=" + city;
+    }
+    // Set the global location query with state and city information
+    locationQuery = "&by_state=" + state + cityLoc;
+}
+
+// Function to mark the breweries on the map
 function markBreweries(map) {
-    var deb = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=37.5407246,-77.4360481&radius=16000&keyword=brewery&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU";
-    /*  $.ajax({ url: queryURL + search + apiKey, method: 'GET' })
-            .done(function (giflist) {*/
+    // First, make sure the location query for the OpenBreweryDB API is set
+    setLocationQuery();
+    // Then set the general queryURL for the OpenBreweryDB API
+    let queryURL = "https://api.openbrewerydb.org/breweries?per_page=50"
+    // Ajax call for OpenBreweryDB
+    $.ajax({
+        url: queryURL + locationQuery,
+        method: "GET"
+    })
+        // When the ajax call returns...
+        .then(function (brewResp) {
+            // Loop through the breweries returned one at a time...
+            for (let i = 0; i < brewResp.length; i++) {
+                // If the brewery's size property can be found inside the array of sizes that the user specified...
+                if (brewerySize.indexOf(brewResp[i].brewery_type) > -1) {
+                    // Create a name variable to reference the brewery name
+                    let name = brewResp[i].name;
+                    let queryName = name.split("&").join("").split("-").join("");
+                    // Stipulate a query to the google maps API using the name, city, and state specified, as well as the specific "fields" we want data for
+                    let googleQuery = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
+                    console.log("googleQuery:");
+                    console.log(googleQuery);
+                    // Make an ajax call to the google maps API using the url above
+                    $.ajax({
+                        url: googleQuery,
+                        method: "GET"
+                    })
+                        // When the ajax call returns...
+                        .then(function (googleResp) {
+                            console.log(googleResp);
+                            // Create an object, fill it with the information from each API that we need
+                            let newBrew = {
+                                // Name (from the name variable created earlier)
+                                name: name,
+                                // Type (from the OpenBreweryDB brewery_type property)
+                                type: brewResp[i].brewery_type,
+                                // Website (from the OpenBreweryDB website_url property)
+                                website: brewResp[i].website_url,
+                                // Address (from the Google formatted_address property)
+                                address: googleResp.candidates[0].formatted_address,
+                                // Rating (from the Google rating property)
+                                rating: googleResp.candidates[0].rating,
+                                // Open now boolean (from the Google open_hours open_now property)
+                                rating: googleResp.candidates[0].opening_hours.open_now,
+                                // Latitude (from the Google geometry location lat property)
+                                lat: googleResp.candidates[0].geometry.location.lat,
+                                // Longitude (from the Google geometry location lng property)
+                                lng: googleResp.candidates[0].geometry.location.lng,
+                            }
+                            // Push the newBrew object into the breweries array so we can use it later
+                            breweries.push(newBrew);
+                            // Console log the newBrew to test
+                            console.log("just added this brewery:");
+                            console.log(newBrew);
+                            // Console log the breweries array to test
+                            console.log("full list of breweries:");
+                            console.log(breweries)
+                        });
+                };
+            };
+        })
 
-    //hardcoded for testing
-    var richmondBreweries =
-    {
-        "html_attributions": [],
-        "next_page_token": "CqQCHgEAAE1YimZ9hHOjqG1oiRcQ2p9w6eInsxpBbsJNSZE4rWgGijHGICyDkb2qItwcxtdOohmbKnwLAU9E7HuksNoByPtSYUP0E083GcCPivJ0Hre5X_KcjyT6C9qgFiZCuOEvAfn5Nm1rjmd5kFuEgPjxUXm5GnIwlWo-XKWyDMh0I6xYKCDgKVb61n_uVX28H63og6jqnqLrII0QIgPxiHMPcUS2hv4_8JYeaqYHbzwzpl6vnpZHwODmHtKMaXewF3Rw0XI3ajVHPhXSUwL_IuxUryess8DFkb4EzBPi70eL98FBDeSTc3SYpwJnwshSDx6cCtotlVdeXx8w0E7eCYJMNq82Vlg6X5dc4ORLG6LkpQ-NUdmCgrJxEKkA35xPesMCZhIQkdlImGjpHCtIMATA7c2LSBoU3uCWsSCNLlTq5RWIl26v8qJnYpQ",
-        "results": [
-            {
-                "geometry": {
-                    "location": {
-                        "lat": 37.5211249,
-                        "lng": -77.4127001
-                    },
-                    "viewport": {
-                        "northeast": {
-                            "lat": 37.5228112,
-                            "lng": -77.40971665000001
-                        },
-                        "southwest": {
-                            "lat": 37.51960599999999,
-                            "lng": -77.41692245
-                        }
-                    }
-                },
-                "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/generic_business-71.png",
-                "id": "95c2e79d1ba1464986ba455464af10205cd621ac",
-                "name": "Stone Brewing Tap Room - Richmond",
-                "opening_hours": {
-                    "open_now": true
-                },
-                "photos": [
-                    {
-                        "height": 4032,
-                        "html_attributions": [
-                            "\u003ca href=\"https://maps.google.com/maps/contrib/109206062470901955675/photos\"\u003eWilliam Wyandt\u003c/a\u003e"
-                        ],
-                        "photo_reference": "CmRZAAAAtvkK5Rltjwqi5lAOTwmyXC0Gfiw40zpLsdia3fKUaFV20oVIZ6eSlSdegiu8zcR6lzxBTosb_SNMiw6WpFTm0yLNUZY5UWY5BsdBUgCXLzoIDroncAt_Qb4m_H4VXOMnEhAxi8Cv_NvhJKBfJ_8ZihqNGhSgfpOC1eEdayuWMUSaCCrdSTdE3g",
-                        "width": 3024
-                    }
-                ],
-                "place_id": "ChIJwSiejvAQsYkRG3KWUQTG0sw",
-                "plus_code": {
-                    "compound_code": "GHCP+CW Richmond, Virginia, USA",
-                    "global_code": "8794GHCP+CW"
-                },
-                "rating": 4.5,
-                "reference": "ChIJwSiejvAQsYkRG3KWUQTG0sw",
-                "scope": "GOOGLE",
-                "types": ["food", "point_of_interest", "establishment"],
-                "user_ratings_total": 220,
-                "vicinity": "4300 Williamsburg Ave, Richmond"
-            },
-            {
-                "geometry": {
-                    "location": {
-                        "lat": 37.564458,
-                        "lng": -77.47213499999999
-                    },
-                    "viewport": {
-                        "northeast": {
-                            "lat": 37.56567287989272,
-                            "lng": -77.47096837010729
-                        },
-                        "southwest": {
-                            "lat": 37.56297322010727,
-                            "lng": -77.47366802989272
-                        }
-                    }
-                },
-                "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/generic_business-71.png",
-                "id": "52f0e490883136791c1bffa2cb006c84ddd3f0e3",
-                "name": "Three Notch'd Brewing Company - RVA Collab House",
-                "opening_hours": {
-                    "open_now": false
-                },
-                "photos": [
-                    {
-                        "height": 2340,
-                        "html_attributions": [
-                            "\u003ca href=\"https://maps.google.com/maps/contrib/103443902826247253772/photos\"\u003etom fauquet\u003c/a\u003e"
-                        ],
-                        "photo_reference": "CmRaAAAAi_WBZ1EfSwZWe55RL0e7m2VtG-eLCtPS2TKmOhnHItlMrKu4qvZWfJKJmiEkbu5jjjiE8TAde7LKoWPqtxLkLHXZHt0ObxVjPx8Mb8AtrRC4DLvgKnwpOpeDkhd2C9CZEhCbP4Qgjk5R4ZzIBVZltrmEGhQ77tRaPILJaIbXScEt_LQPoaucXw",
-                        "width": 4160
-                    }
-                ],
-                "place_id": "ChIJhd9SQgAUsYkRj-seDhXVxPo",
-                "plus_code": {
-                    "compound_code": "HG7H+Q4 Richmond, Virginia, USA",
-                    "global_code": "8794HG7H+Q4"
-                },
-                "rating": 4.6,
-                "reference": "ChIJhd9SQgAUsYkRj-seDhXVxPo",
-                "scope": "GOOGLE",
-                "types": ["food", "point_of_interest", "establishment"],
-                "user_ratings_total": 136,
-                "vicinity": "2930 W Broad St, Richmond"
-            }
-
-        ]
-    }
-    var results = richmondBreweries.results;
-    console.log("results");
-    console.log(results);
-    var marker = [];
-    //loop through the result set and put markers on the map
-    for (var i = 0; i < results.length; i++) {
-        console.log("results[i].geometry.location");
-        console.log(results[i].geometry.location);
-        //add marker to the map
-        marker[i] = new google.maps.Marker({
-            position: results[i].geometry.location,
-            map: map,
-            title: results[i].name,
-            label: i
-        });
-        //add a listener for the marker
-        marker[i].addListener('click', markerClicked);
-    }
+    // var results = richmondBreweries.results;
+    // console.log("results");
+    // console.log(results);
+    // var marker = [];
+    // //loop through the result set and put markers on the map
+    // for (var i = 0; i < breweries.length; i++) {
+    //     console.log("breweries[i].geometry.location");
+    //     console.log(breweries[i].geometry.location);
+    //     //add marker to the map
+    //     marker[i] = new google.maps.Marker({
+    //         position: results[i].geometry.location,
+    //         map: map,
+    //         title: results[i].name,
+    //         label: i
+    //     });
+    //     //add a listener for the marker
+    //     marker[i].addListener('click', markerClicked);
+    // }
 };
 
 
@@ -193,7 +182,7 @@ function initMap() {
             map.setZoom(17);  // Why 17? Because it looks good.
         }
         marker.setPosition(place.geometry.location);
-        marker.setVisible(true);
+        marker.setVisible(false);
 
         //add a listener for the marker
         marker.addListener('click', markerClicked);
@@ -204,17 +193,10 @@ function initMap() {
         console.log("viewport: " + place.geometry.viewport);
 
         //this will display city/state for the initial pin
-        var address = '';
         if (place.address_components) {
-            address = [
-                (place.address_components[0] && place.address_components[0].short_name || ''),    //city
-                (place.address_components[1] && place.address_components[1].short_name || '')     //state
-                // (place.address_components[2] && place.address_components[2].short_name || '')   country
-            ].join(' ');
+            city = (place.address_components[0] && place.address_components[0].short_name || '');
+            state = (place.address_components[1] && place.address_components[1].long_name || '');
         }
-
-        marker.setTitle(address);
-        //need to call the function to get the breweries to plot
 
         markBreweries(map);
 
