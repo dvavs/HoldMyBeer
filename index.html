@@ -12,14 +12,16 @@
     <!-- CSS LINKS-->
 
     <!-- Inset link tag here for reset.css depending on framework chosen -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
     <!-- Also need to create the reset.css if need be in assets/css -->
 
     <!-- Insert link tag here to CSS framework of choice -->
-    <!-- For now we've got Bootstrap, but we can change it if we want -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- For now we've got Bootstrap, but we can change it if we want <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">-->
 
-    <!-- Link to our personal styles -->
+
+    <!-- Link to our personal styles-->
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
 
 
@@ -45,18 +47,28 @@
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="jumbotron">
-            <h1>Hold My Beer</h1>
+    <section class="hero is-warning is-bold">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title is-1">
+                    Hold My Beer!
+                </h1>
+                <h2 class="subtitle">
+                    Find your favorite beer near you
+                </h2>
+            </div>
         </div>
+    </section>
 
-        <div class="row">
-            <div class="col-sm-6" id="parameterSelect">
+    <div class="box">
+        <div class="columns">
+            <div class="column" id="parameterSelect">
                 <h2>Where are you going?</h2>
                 <form>
                     <div class="form-group">
                         <label for="locality">Locality (city or county):</label>
                         <input type="text" class="form-control" id="locality">
+                        <br>
                         <small id="localityInfo" class="form-text text-muted">Leave this blank if you want to see
                             results for the whole state.</small>
                     </div>
@@ -94,28 +106,30 @@
                     </div>
                 </form>
             </div>
-            <div class="col-sm-6" id="dataOutput">
-                <div class="row">
-                    <!-- Filler div to apply buffer space -->
-                    <div class="col-1"></div>
-                    <div class="col-10" id="mapDisplay">
-                        <h1>I'm the map, I'm the map.</h1>
-                    </div>
-                    <!-- Another filler div to apply buffer space -->
-                    <div class="col-1"></div>
+        </div>
+
+        <div class="column" id="dataOutput">
+            <div class="row">
+                <!-- Filler div to apply buffer space -->
+                <div class="col-1"></div>
+                <div class="col-10" id="mapDisplay">
+                    <h1>I'm the map, I'm the map.</h1>
                 </div>
-                <div class="row">
-                    <!-- Filler div to apply buffer space -->
-                    <div class="col-2"></div>
-                    <!-- Content div with information about breweries, accomodations, etc. TBD -->
-                    <div class="col-8" id="infoDisplay">
-                        <h3>Information would appear here after map is generated.</h3>
-                    </div>
-                    <!-- Another filler div to apply buffer space -->
-                    <div class="col-2"></div>
+                <!-- Another filler div to apply buffer space -->
+                <div class="col-1"></div>
+            </div>
+            <div class="row">
+                <!-- Filler div to apply buffer space -->
+                <div class="col-2"></div>
+                <!-- Content div with information about breweries, accomodations, etc. TBD -->
+                <div class="col-8" id="infoDisplay">
+                    <h3>Information would appear here after map is generated.</h3>
                 </div>
+                <!-- Another filler div to apply buffer space -->
+                <div class="col-2"></div>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Sticky footer that will never come above the bottom of the page -->
