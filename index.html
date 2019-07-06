@@ -24,10 +24,10 @@
 </head>
 
 <body>
-    <section class="hero is-warning is-bold">
+    <section class="hero is-warning is-bold" id="header">
         <div class="hero-body">
             <div class="container">
-                <h1 class="title is-1" id="header">
+                <h1 class="title is-1" id="header-text">
                     Hold My Beer!
                 </h1>
                 <h2 class="subtitle" id="subtitle">
@@ -60,29 +60,31 @@
                     <label for="beerSelect">What kind of brewery are you interested in?</label>
                     <p id="all">(Check all that apply)</p>
                     <div class="form-group" id="beerSelect">
-                        <div class="custom-control custom-checkbox" id="ipaSelect">
-                            <input type="checkbox" class="custom-control-input" id="ipa">
-                            <label class="custom-control-label" for="brewPub">BrewPub</label>
+                        <div class="custom-control custom-checkbox" id="brewPubSelect">
+                            <input type="checkbox" class="custom-control-input" id="brewPub">
+                            <label class="custom-control-label" for="brewPub">Brewpub</label>
                         </div>
-                        <div class="custom-control custom-checkbox" id="stoutSelect">
-                            <input type="checkbox" class="custom-control-input" id="stout">
-                            <label class="custom-control-label" for="micro">Micro</label>
+                        <div class="custom-control custom-checkbox" id="microSelect">
+                            <input type="checkbox" class="custom-control-input" id="micro">
+                            <label class="custom-control-label" for="micro">Microbrewery</label>
                         </div>
-                        <div class="custom-control custom-checkbox" id="lagerSelect">
-                            <input type="checkbox" class="custom-control-input" id="lager">
+                        <div class="custom-control custom-checkbox" id="regionalSelect">
+                            <input type="checkbox" class="custom-control-input" id="regional">
                             <label class="custom-control-label" for="regional">Regional</label>
                         </div>
-                        <div class="custom-control custom-checkbox" id="lagerSelect">
-                            <input type="checkbox" class="custom-control-input" id="lager">
+                        <div class="custom-control custom-checkbox" id="largeSelect">
+                            <input type="checkbox" class="custom-control-input" id="large">
                             <label class="custom-control-label" for="large">Domestic</label>
                         </div>
                     </div>
                 </form>
+                <a class="button is-warning" id="button">Submit</a>
             </div>
 
             <div class="column" id="dataOutput">
                 <div id="map">
                 </div>
+                
                 <!-- Content div with information about breweries, accomodations, etc. TBD -->
                 <div id="infoDisplay">
                     <h3>Information would appear here after map is generated.</h3>
@@ -105,5 +107,4 @@
         async defer></script>
 
 </body>
-
 </html>
