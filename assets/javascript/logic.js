@@ -18,6 +18,9 @@ let locationQuery = "";
 // Defaults to holding all of them, so that if a user doesn't choose any specific sizes it will search for all
 let brewerySize = ["brewpub", "micro", "regional", "large"];
 
+// Map variable to hold data for the map expanse
+let map;
+
 // Function to set the location query
 function setLocationQuery() {
     // Temp variable to hold the city information
@@ -31,76 +34,8 @@ function setLocationQuery() {
     locationQuery = "&by_state=" + state + cityLoc;
 }
 
-
-// // THIS IS THE OLD VERSION THAT IS MORE COMPLICATED AND DOES NOT WORK AS WELL
-// // Function to mark the breweries on the map
-// function markBreweries(map) {
-//     // First, make sure the location query for the OpenBreweryDB API is set
-//     setLocationQuery();
-//     // Then set the general queryURL for the OpenBreweryDB API
-//     let queryURL = "https://api.openbrewerydb.org/breweries?per_page=50"
-//     // Ajax call for OpenBreweryDB
-//     $.ajax({
-//         url: queryURL + locationQuery,
-//         method: "GET"
-//     })
-//         // When the ajax call returns...
-//         .then(function (brewResp) {
-//             // Loop through the breweries returned one at a time...
-//             for (let i = 0; i < brewResp.length; i++) {
-//                 // If the brewery's size property can be found inside the array of sizes that the user specified...
-//                 if (brewerySize.indexOf(brewResp[i].brewery_type) > -1) {
-//                     // Create a name variable to reference the brewery name
-//                     let name = brewResp[i].name;
-//                     let queryName = name.split("&").join("").split("-").join("");
-//                     // Stipulate a query to the google maps API using the name, city, and state specified, as well as the specific "fields" we want data for
-//                     let googleQuery = `/proxy/https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
-//                     console.log("googleQuery:");
-//                     console.log(googleQuery);
-//                     // Make an ajax call to the google maps API using the url above
-//                     $.ajax({
-//                         url: googleQuery,
-//                         method: "GET"
-//                     })
-//                         // When the ajax call returns...
-//                         .then(function (googleRespStr) {
-//                             let googleResp = JSON.parse(googleRespStr)
-//                             console.log(googleResp);
-//                             // Create an object, fill it with the information from each API that we need
-//                             let newBrew = {
-//                                 // Name (from the name variable created earlier)
-//                                 name: name,
-//                                 // Type (from the OpenBreweryDB brewery_type property)
-//                                 type: brewResp[i].brewery_type,
-//                                 // Website (from the OpenBreweryDB website_url property)
-//                                 website: brewResp[i].website_url,
-//                                 // Address (from the Google formatted_address property)
-//                                 address: googleResp.candidates[0].formatted_address,
-//                                 // Rating (from the Google rating property)
-//                                 rating: googleResp.candidates[0].rating,
-//                                 // Open now boolean (from the Google open_hours open_now property)
-//                                 openNow: googleResp.candidates[0].opening_hours.open_now,
-//                                 // Latitude (from the Google geometry location lat property)
-//                                 lat: googleResp.candidates[0].geometry.location.lat,
-//                                 // Longitude (from the Google geometry location lng property)
-//                                 lng: googleResp.candidates[0].geometry.location.lng,
-//                             }
-//                             // Push the newBrew object into the breweries array so we can use it later
-//                             breweries.push(newBrew);
-//                             // Console log the newBrew to test
-//                             console.log("just added this brewery:");
-//                             console.log(newBrew);
-//                             // Console log the breweries array to test
-//                             console.log("full list of breweries:");
-//                             console.log(breweries)
-//                         });
-//                 };
-//             };
-//         });
-// };
-
 // Function to mark the breweries on the map
-function markBreweries(map) {
+function findBreweries() {
     // First, make sure the location query for the OpenBreweryDB API is set
     setLocationQuery();
     // Then set the general queryURL for the OpenBreweryDB API
@@ -112,7 +47,6 @@ function markBreweries(map) {
     })
         // When the ajax call returns...
         .then(function (brewResp) {
-            console.log(brewResp);
             // Loop through the breweries returned one at a time...
             for (let i = 0; i < brewResp.length; i++) {
                 // If the brewery's size property can be found inside the array of sizes that the user specified...
@@ -120,20 +54,18 @@ function markBreweries(map) {
                     // Create a name variable to reference the brewery name
                     let name = brewResp[i].name;
                     let queryName = name.split("&").join("").split("-").join("");
-                    // Create a request object housing the name and the data fields we want
-                    let request = {
-                        query: queryName,
-                        fields: ["name", "geometry", "formatted_address", "rating", "opening_hours"],
-                    };
-                    // Create a new service request using the google maps places api
-                    let service = new google.maps.places.PlacesService(map);
-                    // Call the service request to the google api
-                    service.findPlaceFromQuery(request, function (googleResp, status) {
-                        // If the google api returns something with an OK status...
-                        if (status === google.maps.places.PlacesServiceStatus.OK) {
-                            console.log("googleResp[0]");
-                            console.log(googleResp[0]);
-                            // Create an object to house all the brewery data we want
+                    // Stipulate a query to the google maps API using the name, city, and state specified, as well as the specific "fields" we want data for
+                    // Add /proxy/ to the beginning of the query URL so we avoid CORS errors
+                    let googleQuery = `/proxy/https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
+                    // Make an ajax call to the google maps API using the url above
+                    $.ajax({
+                        url: googleQuery,
+                        method: "GET"
+                    })
+                        // When the ajax call returns...
+                        .then(function (googleRespStr) {
+                            let googleResp = JSON.parse(googleRespStr)
+                            // Create an object, fill it with the information from each API that we need
                             let newBrew = {
                                 // Name (from the name variable created earlier)
                                 name: name,
@@ -142,39 +74,44 @@ function markBreweries(map) {
                                 // Website (from the OpenBreweryDB website_url property)
                                 website: brewResp[i].website_url,
                                 // Address (from the Google formatted_address property)
-                                address: googleResp[0].formatted_address,
+                                address: googleResp.candidates[0].formatted_address,
                                 // Rating (from the Google rating property)
-                                rating: googleResp[0].rating,
+                                rating: googleResp.candidates[0].rating,
                                 // Open now boolean (from the Google open_hours open_now property)
-                                openNow: googleResp[0].opening_hours.open_now,
+                                openNow: googleResp.candidates[0].opening_hours.open_now,
                                 // Latitude (from the Google geometry location lat property)
-                                lat: googleResp[0].geometry.viewport.na.j,
+                                lat: googleResp.candidates[0].geometry.location.lat,
                                 // Longitude (from the Google geometry location lng property)
-                                lng: googleResp[0].geometry.viewport.ga.j
+                                lng: googleResp.candidates[0].geometry.location.lng,
                             }
-                            // Push the newBrew object into the array of breweries
+                            // Push the newBrew object into the breweries array so we can use it later
                             breweries.push(newBrew);
-                            console.log(newBrew);
-                            console.log(breweries);
-                        };
-                    });
+                            // Console log the breweries array to test
+                            console.log("full list of breweries:");
+                            console.log(breweries)
+                        });
                 };
             };
         });
-    let marker = [];
-    // loop through the result set and put markers on the map
-    for (let i = 0; i < breweries.length; i++) {
-        // add marker to the map
-        marker[i] = new google.maps.Marker({
-            position: {
-                lat: breweries[i].lat,
-                lng: breweries[i].lng
-            },
-            map: map,
-            title: breweries[i].name
-        });
-    }
 };
+
+function markBreweries(map) {
+        // Loop through the result set and put markers on the map
+        for (let i = 0; i < breweries.length; i++) {
+            // Import the relevant lat/long data for the marker position
+            // add marker to the map
+            newMark = {
+                position: {
+                    "lat": breweries[i].lat,
+                    "lng": breweries[i].lng,
+                },
+                map: map,
+                title: breweries[i].name
+            };
+            new google.maps.Marker(newMark);
+            console.log(newMark);
+        };
+}
 
 function markerClicked() {
     alert("marker clicked");
@@ -182,7 +119,7 @@ function markerClicked() {
 
 //callback function from the map script at the end.  Not sure how that is working
 function initMap() {
-    var map = new google.maps.Map(document.getElementById('map'), {
+    map = new google.maps.Map(document.getElementById("map"), {
         //37.5407246, lng: -77.4360481  --Richmond
         //39.381266 N,-97.922211 W  --USA
         //center: {lat: 50.064192, lng: -130.605469},
@@ -222,6 +159,7 @@ function initMap() {
     //this triggers the reset of the map based on new location
     autocomplete.addListener('place_changed', function () {
         infowindow.close();
+        // Set the marker to invisible so it doesn't actually appear on the map
         marker.setVisible(false);
         var place = autocomplete.getPlace();
         console.log("place");
@@ -258,26 +196,7 @@ function initMap() {
             state = (place.address_components[1] && place.address_components[1].long_name || '');
         }
 
+        findBreweries();
         markBreweries(map);
-
-        //stuff below show a marker with the city/state stuff.  Don't think we need
-        //  infowindowContent.children['place-icon'].src = place.icon;
-        //  infowindowContent.children['place-name'].textContent = place.name;
-        //  infowindowContent.children['place-address'].textContent = address;
-        //  infowindow.open(map, marker);
-
     });
-
-    /* Sets a listener on a given radio button. The radio buttons specify
-    // the countries used to restrict the autocomplete search.
-    function setupClickListener(id, countries) {
-      var radioButton = document.getElementById(id);
-      radioButton.addEventListener('click', function() {
-        autocomplete.setComponentRestrictions({'country': countries});
-      });
-    }
- 
-    setupClickListener('changecountry-usa', 'us');
-    setupClickListener(
-        'changecountry-usa-and-uot', ['us', 'pr', 'vi', 'gu', 'mp']);*/
 }
