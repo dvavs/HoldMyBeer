@@ -24,8 +24,27 @@ let locationQuery = "";
 // Defaults to holding all of them, so that if a user doesn't choose any specific sizes it will search for all
 let brewerySize = ["brewpub", "micro", "regional", "large"];
 
+//will hold the brewerySizes that the user selected
+let brewerySizeSelected = [];
+
 // Map variable to hold data for the map expanse
 let map;
+
+//city/state not straightforward.  Need to loop through the components to find them by address type.
+function getCityState(place) {
+    //loop through the address components to find the city and state by type and populate globals
+
+    for (var i = 0; i < place.address_components.length; i++) {
+        var addressType = place.address_components[i].types[0];
+        if (addressType === "administrative_area_level_1") {
+            state = place.address_components[i].long_name;
+        }
+        else if (addressType === "locality") {
+            city = place.address_components[i].long_name;
+        }
+
+    }
+}
 
 // Function to set the location query
 function setLocationQuery() {
@@ -41,11 +60,11 @@ function setLocationQuery() {
 }
 
 // Function to mark the breweries on the map
-function markBreweries(map) {
+function markBreweries() {
     // First, make sure the location query for the OpenBreweryDB API is set
     setLocationQuery();
-    // Then set the general queryURL for the OpenBreweryDB API
-    let queryURL = "https://api.openbrewerydb.org/breweries?per_page=50"
+    // Then set the general queryURL for the OpenBreweryDB API - limit to 20
+    let queryURL = "https://api.openbrewerydb.org/breweries?per_page=20"
     // Before making the ajax call, make sure the breweries array is emptied
     breweries = [];
     // Also empty the array of markers for the map
@@ -62,14 +81,14 @@ function markBreweries(map) {
             console.log(brewResp);
             // Loop through the breweries returned one at a time...
             for (let i = 0; i < brewResp.length; i++) {
-                // If the brewery's size property can be found inside the array of sizes that the user specified...
-                if (brewerySize.indexOf(brewResp[i].brewery_type) > -1) {
+                // If the brewery's size property can be found inside the array of sizes that the user specified, or they didn't select any.
+                if (brewerySizeSelected.indexOf(brewResp[i].brewery_type  > -1 || brewerySizeSelected.length === 0)) {
                     // Create a name variable to reference the brewery name
                     let name = brewResp[i].name;
                     let queryName = name.split("&").join("").split("-").join("");
                     // Stipulate a query to the google maps API using the name, city, and state specified, as well as the specific "fields" we want data for
                     // Add /proxy/ to the beginning of the query URL so we avoid CORS errors
-                    let googleQuery = `/proxy/https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
+                    let googleQuery = `/proxy/https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating,place_id&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
                     // Make an ajax call to the google maps API using the url above
                     $.ajax({
                         url: googleQuery,
@@ -78,46 +97,67 @@ function markBreweries(map) {
                         // When the ajax call returns...
                         .done(function (googleRespStr) {
                             let googleResp = JSON.parse(googleRespStr)
-                            // Create a brewNum variable so the map number label for the brewery can be put inside its object
-                            let brewNum = brewIndex + 1
-                            // Create an object, fill it with the information from each API that we need
-                            let newBrew = {
-                                // Map number (equal to the current brew index +1)
-                                number: brewNum,
-                                // Name (from the name variable created earlier)
-                                name: name,
-                                // Type (from the OpenBreweryDB brewery_type property)
-                                type: brewResp[i].brewery_type,
-                                // Website (from the OpenBreweryDB website_url property)
-                                website: brewResp[i].website_url,
-                                // Address (from the Google formatted_address property)
-                                address: googleResp.candidates[0].formatted_address,
-                                // Rating (from the Google rating property)
-                                rating: googleResp.candidates[0].rating,
-                                // Open now boolean (from the Google open_hours open_now property)
-                                openNow: googleResp.candidates[0].opening_hours.open_now,
-                                // Location (from the Google geometry property)
-                                location: googleResp.candidates[0].geometry.location,
-                                // Latitude (from the Google geometry location lat property)
-                                lat: googleResp.candidates[0].geometry.location.lat,
-                                // Longitude (from the Google geometry location lng property)
-                                lng: googleResp.candidates[0].geometry.location.lng,
+                            //need to make sure it was successful
+                            if (googleResp.candidates[0].status = "OK") {
+
+                                console.log("googleresp: " + googleResp);
+                                console.log("queryname: " + queryName);
+                                console.log("querystr: " + googleQuery);
+                                // Create a brewNum variable so the map number label for the brewery can be put inside its object
+                                let brewNum = brewIndex + 1
+                                //create variable for elements that may not exist and default so all tags have values
+                                let openNowv = false;
+                                let ratingv = "N/A";
+                                //make sure the parent property exists, and the child.
+                                if (googleResp.candidates[0].hasOwnProperty('opening_hours') && googleResp.candidates[0].opening_hours.hasOwnProperty('open_now')) {
+                                    openNowv = googleResp.candidates[0].opening_hours.open_now;
+                                }
+                                if (googleResp.candidates[0].hasOwnProperty('rating')) {
+                                    ratingv = googleResp.candidates[0].rating;
+                                }
+                                // Create an object, fill it with the information from each API that we need
+                                let newBrew = {
+                                    // Map number (equal to the current brew index +1)
+                                    number: brewNum,
+                                    // Name (from the name variable created earlier)
+                                    name: name,
+                                    // Type (from the OpenBreweryDB brewery_type property)
+                                    type: brewResp[i].brewery_type,
+                                    // Website (from the OpenBreweryDB website_url property)
+                                    website: brewResp[i].website_url,
+                                    // Address (from the Google formatted_address property)
+                                    address: googleResp.candidates[0].formatted_address,
+                                    // Rating (from the Google rating property)
+                                    rating: ratingv,
+                                    // Open now boolean (from the Google open_hours open_now property)
+                                    openNow: openNowv,
+                                    // Location (from the Google geometry property)
+                                    location: googleResp.candidates[0].geometry.location,
+                                    // Latitude (from the Google geometry location lat property)
+                                    lat: googleResp.candidates[0].geometry.location.lat,
+                                    // Longitude (from the Google geometry location lng property)
+                                    lng: googleResp.candidates[0].geometry.location.lng,
+                                    //place id so we can get details if clicked on
+                                    place_id: googleResp.candidates[0].place_id
+                                }
+                                // Push the newBrew[] object into the breweries array so we can use it later
+                                breweries.push(newBrew);
+                                // Create a new marker and put it on the map
+                                brewMarks[brewIndex] = new google.maps.Marker({
+                                    position: {
+                                        lat: breweries[brewIndex].lat,
+                                        lng: breweries[brewIndex].lng
+                                    },
+                                    map: map,
+                                    title: breweries[brewIndex].name,
+                                    label: brewNum.toString()
+                                })
+                                console.log("name:" + name + " lat: " + breweries[brewIndex].lat + " lng: " + breweries[brewIndex].lng);
+                                console.log(googleResp);
+                                // Increment the brewIndex to so the next go round will use the right index for reference
+                                brewIndex++;
+                                //console.log(breweries);
                             }
-                            // Push the newBrew object into the breweries array so we can use it later
-                            breweries.push(newBrew);
-                            // Create a new marker and put it on the map
-                            brewMarks[brewIndex] = new google.maps.Marker({
-                                position: {
-                                    lat: breweries[brewIndex].lat,
-                                    lng: breweries[brewIndex].lng
-                                },
-                                map: map,
-                                title: breweries[brewIndex].name,
-                                label: brewNum.toString()
-                            })
-                            // Increment the brewIndex to so the next go round will use the right index for reference
-                            brewIndex++;
-                            console.log(breweries);
                         });
                 };
             };
@@ -127,6 +167,32 @@ function markBreweries(map) {
 function markerClicked() {
     alert("marker clicked");
 }
+
+//this will loop through the checkboxes and load those selected. If not selected, it will include all
+function loadBreweriesSelected() {
+    brewerySizeSelected = [];
+    //loop through the pre-defined sizes and get the element checkbox
+    /*  for (let i = 0; i < brewerySize.length; i++) {
+          let cbName = brewerySize[i];
+          console.log("cbname: "+cbName);
+          //if ($(cbName).prop("checked") === true) {
+          //id will be the same name as the size element
+          if (document.getElementById(cbName).checked) {
+              console.log("cbname checked: "+cbName);
+              brewerySizeSelected.push(cbName);
+          }*/
+    $(".custom-control-input").each(function () {
+        if ($(this).prop("checked") === true) {
+            brewerySize.push($(this).attr("id"));
+        }
+        console.log("brewsize: " + brewerySizeSelected);
+    });
+}
+/*console.log("brewsize: " + brewerySizeSelected);
+console.log("micro: " + $("#microSelect").prop("checked"));
+console.log("micro2: " + document.getElementById("microSelect").checked);
+}*/
+
 
 //callback function from the map script at the end.  Not sure how that is working
 function initMap() {
@@ -201,12 +267,19 @@ function initMap() {
         console.log("name: " + place.name);
         console.log("viewport: " + place.geometry.viewport);
 
-        //this will display city/state for the initial pin
-        if (place.address_components) {
-            city = (place.address_components[0] && place.address_components[0].short_name || '');
-            state = (place.address_components[1] && place.address_components[1].long_name || '');
-        }
+        //initializze and get the city/state for the beer query
+        city = "";
+        state = "";
+        getCityState(place);
 
-        markBreweries(map);
+
     });
+
+    //button to initiate the search
+    $("#button").on("click", function (event) {
+        //see if they've selected certain brewery types
+        loadBreweriesSelected();
+        markBreweries();
+    });
+
 }
