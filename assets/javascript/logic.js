@@ -5,6 +5,12 @@
 // Array to hold all brewery objects that fit the user's parameters
 let breweries = [];
 
+// Array to hold all the brewery markers for the map
+let brewMarks = [];
+
+// Index variable to count through the brewMarks and breweries variables in context where a for loop is impossible
+let brewIndex = 0;
+
 // Global ariable to hold the name of the city specified by the user
 let city = "";
 
@@ -35,11 +41,17 @@ function setLocationQuery() {
 }
 
 // Function to mark the breweries on the map
-function findBreweries() {
+function markBreweries(map) {
     // First, make sure the location query for the OpenBreweryDB API is set
     setLocationQuery();
     // Then set the general queryURL for the OpenBreweryDB API
     let queryURL = "https://api.openbrewerydb.org/breweries?per_page=50"
+    // Before making the ajax call, make sure the breweries array is emptied
+    breweries = [];
+    // Also empty the array of markers for the map
+    brewMarks = [];
+    // Reset the brewIndex to zero for counting through the brewMarks and breweries arrays
+    brewIndex = 0;
     // Ajax call for OpenBreweryDB
     $.ajax({
         url: queryURL + locationQuery,
@@ -47,6 +59,7 @@ function findBreweries() {
     })
         // When the ajax call returns...
         .then(function (brewResp) {
+            console.log(brewResp);
             // Loop through the breweries returned one at a time...
             for (let i = 0; i < brewResp.length; i++) {
                 // If the brewery's size property can be found inside the array of sizes that the user specified...
@@ -63,10 +76,14 @@ function findBreweries() {
                         method: "GET"
                     })
                         // When the ajax call returns...
-                        .then(function (googleRespStr) {
+                        .done(function (googleRespStr) {
                             let googleResp = JSON.parse(googleRespStr)
+                            // Create a brewNum variable so the map number label for the brewery can be put inside its object
+                            let brewNum = brewIndex + 1
                             // Create an object, fill it with the information from each API that we need
                             let newBrew = {
+                                // Map number (equal to the current brew index +1)
+                                number: brewNum,
                                 // Name (from the name variable created earlier)
                                 name: name,
                                 // Type (from the OpenBreweryDB brewery_type property)
@@ -79,6 +96,8 @@ function findBreweries() {
                                 rating: googleResp.candidates[0].rating,
                                 // Open now boolean (from the Google open_hours open_now property)
                                 openNow: googleResp.candidates[0].opening_hours.open_now,
+                                // Location (from the Google geometry property)
+                                location: googleResp.candidates[0].geometry.location,
                                 // Latitude (from the Google geometry location lat property)
                                 lat: googleResp.candidates[0].geometry.location.lat,
                                 // Longitude (from the Google geometry location lng property)
@@ -86,32 +105,24 @@ function findBreweries() {
                             }
                             // Push the newBrew object into the breweries array so we can use it later
                             breweries.push(newBrew);
-                            // Console log the breweries array to test
-                            console.log("full list of breweries:");
-                            console.log(breweries)
+                            // Create a new marker and put it on the map
+                            brewMarks[brewIndex] = new google.maps.Marker({
+                                position: {
+                                    lat: breweries[brewIndex].lat,
+                                    lng: breweries[brewIndex].lng
+                                },
+                                map: map,
+                                title: breweries[brewIndex].name,
+                                label: brewNum.toString()
+                            })
+                            // Increment the brewIndex to so the next go round will use the right index for reference
+                            brewIndex++;
+                            console.log(breweries);
                         });
                 };
             };
         });
 };
-
-function markBreweries(map) {
-        // Loop through the result set and put markers on the map
-        for (let i = 0; i < breweries.length; i++) {
-            // Import the relevant lat/long data for the marker position
-            // add marker to the map
-            newMark = {
-                position: {
-                    "lat": breweries[i].lat,
-                    "lng": breweries[i].lng,
-                },
-                map: map,
-                title: breweries[i].name
-            };
-            new google.maps.Marker(newMark);
-            console.log(newMark);
-        };
-}
 
 function markerClicked() {
     alert("marker clicked");
@@ -196,7 +207,6 @@ function initMap() {
             state = (place.address_components[1] && place.address_components[1].long_name || '');
         }
 
-        findBreweries();
         markBreweries(map);
     });
 }
