@@ -9,15 +9,14 @@
     <title>Hold My Beer</title>
 
 
-    <!-- CSS LINKS-->
-    <!-- Inset link tag here for reset.css depending on framework chosen -->
+    <!-- Bulma CSS, contains a reset -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+    <!-- Bulma-related icons script -->
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
-    <!-- Also need to create the reset.css if need be in assets/css -->
+    
     <!-- Link to our personal styles-->
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
 
-    <!-- JAVASCRIPT LINKS -->
     <!-- link to jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
@@ -61,19 +60,19 @@
                     <p id="all">(Check all that apply)</p>
                     <div class="form-group" id="beerSelect">
                         <div class="custom-control custom-checkbox" id="brewpubSelect">
-                            <input type="checkbox" class="custom-control-input" id="brewPub">
-                            <label class="custom-control-label" for="brewPub">Brewpub</label>
+                            <input type="checkbox" class="custom-control-input sizeSelect" id="brewpub">
+                            <label class="custom-control-label" for="brewpub">Brewpub</label>
                         </div>
                         <div class="custom-control custom-checkbox" id="microSelect">
-                            <input type="checkbox" class="custom-control-input" id="micro">
+                            <input type="checkbox" class="custom-control-input sizeSelect" id="micro">
                             <label class="custom-control-label" for="micro">Microbrewery</label>
                         </div>
                         <div class="custom-control custom-checkbox" id="regionalSelect">
-                            <input type="checkbox" class="custom-control-input" id="regional">
+                            <input type="checkbox" class="custom-control-input sizeSelect" id="regional">
                             <label class="custom-control-label" for="regional">Regional</label>
                         </div>
                         <div class="custom-control custom-checkbox" id="largeSelect">
-                            <input type="checkbox" class="custom-control-input" id="large">
+                            <input type="checkbox" class="custom-control-input sizeSelect" id="large">
                             <label class="custom-control-label" for="large">Domestic</label>
                         </div>
                     </div>
