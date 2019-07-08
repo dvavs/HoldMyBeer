@@ -150,24 +150,28 @@ function markBreweries() {
                     let queryName = name.split("&").join("").split("-").join("");
                     // Stipulate a query to the google maps API using the name, city, and state specified, as well as the specific "fields" we want data for
                     // Add /proxy/ to the beginning of the query URL so we avoid CORS errors
-                    let googleQuery = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating,place_id&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
+                    let googleQuery = `/proxy/https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating,place_id&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
                     // Right before you make the AJAX call, increment the callnumber variable
                     ajaxCallNum++;
+                    // THE FOLLOWING IS CODE TO RUN AJAX CALLS THROUGH CORS ANYWHERE
+                    // It's commented out to preserve the logic in case we're able to stand up our own CORS proxy
+                    // But for now we're sticking with the proxy server Greg provided because we keep running into
+                    // Rate limit and other strange errors
                     // Set the googleQuery up to route through CORS Anywhere to avoid CORS errors
-                    $.ajaxPrefilter(function (options) {
-                        if (options.crossDomain && jQuery.support.cors) {
-                            options.url = 'https://cors-anywhere.herokuapp.com/' + options.url;
-                        }
-                    });
+                    // $.ajaxPrefilter(function (options) {
+                    //     if (options.crossDomain && jQuery.support.cors) {
+                    //         options.url = 'https://cors-anywhere.herokuapp.com/' + options.url;
+                    //     }
+                    // });
                     // Make an ajax call to the google maps API
                     $.ajax({
                         url: googleQuery,
                         method: "GET"
                     })
                         // When the ajax call returns...
-                        .done(function (googleResp) {
+                        .done(function (googleRespStr) {
                             // Parse the string that returns from the AJAX call into JSON
-                            // let googleResp = JSON.parse(googleRespStr)
+                            let googleResp = JSON.parse(googleRespStr)
                             // First, make sure the google response was successful and has the "OK" status
                             if (googleResp.status === "OK") {
                                 // Create a reference for the index of the candidates array returned by the Google call, default to 0
