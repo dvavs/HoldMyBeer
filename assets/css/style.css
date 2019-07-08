@@ -19,7 +19,7 @@
   position: relative;
 }
 
-#button {
+#btnSubmit {
   color: hsl(0, 71%, 8%);
   font-size: 12pt;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
