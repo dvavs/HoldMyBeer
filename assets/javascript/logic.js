@@ -5,6 +5,12 @@
 // Array to hold all brewery objects that fit the user's parameters
 let breweries = [];
 
+// Reference variable that will be turned into a div holding info on breweries that are OPEN atm (at the moment)
+let openAtm = $('<div id="openAtm">');
+
+// Reference variable that will be turned into a div holding info on breweries that are CLOSED atm (at the moment)
+let closedAtm = $('<div id="closedAtm">');
+
 // Array to hold all the brewery markers for the map
 let brewMarks = [];
 
@@ -23,11 +29,61 @@ let locationQuery = "";
 // Array to house the brewery size(s) specified by the user
 let brewerySize = [];
 
+// Variable to hold the number of AJAX calls sent to the Google API on a search
+let ajaxCallNum = 0;
+
+// Variable to hold the number of AJAX responses from the Google API
+let ajaxRespNum = 0;
+
 // Map variable to hold data for the map expanse
 let map;
 
-// City/state not straightforward - need to loop through the components to find them by address type
+// Callback function from the map script at the end
+function initMap() {
+    // Initialize the map
+    map = new google.maps.Map(document.getElementById("map"), {
+        // Set the center on a little town in northern Kansas
+        center: { lat: 39.381266, lng: -97.922211 },
+        zoom: 4,
+        // Disable the default UI map controls
+        disableDefaultUI: true,
+    });
+    let input = document.getElementById('pac-input');
+    // Set up the autocomplete functionality for the address input
+    let autocomplete = new google.maps.places.Autocomplete(input);
+    // Set initial restrict to the greater list of countries.
+    autocomplete.setComponentRestrictions(
+        { 'country': ['us'] });
+    // Specify only the data fields that are needed.
+    autocomplete.setFields(
+        ['address_components', 'geometry', 'icon', 'name']);
+    // Autocomplete listener to trigger map movement based on new location
+    autocomplete.addListener("place_changed", function () {
+        let place = autocomplete.getPlace();
+        console.log("place");
+        console.log(place);
+        // If the place has no geometry...
+        if (!place.geometry) {
+            // User entered the name of a Place that was not suggested and
+            // pressed the Enter key, or the Place Details request failed
+            window.alert("No details available for input: '" + place.name + "'");
+            return;
+        }
+        // Otherwise, it must have geometry, so...
+        else {
+            // Change the map so that it shows that place
+            map.fitBounds(place.geometry.viewport);
+        }
+        // Then pull the relevant city/state data from the user query
+        getCityState(place);
+    });
+}
+
+// Function to pull city/state data based on address type data from the Google autocomplete data
 function getCityState(place) {
+    // Make sure the city and state fields are cleared
+    city = "";
+    state = "";
     // Loop through the address components to find the city and state by type and populate globals
     for (let i = 0; i < place.address_components.length; i++) {
         let addressType = place.address_components[i].types[0];
@@ -40,31 +96,29 @@ function getCityState(place) {
     }
 }
 
-// Function to set the location query
-function setLocationQuery() {
-    // Temp variable to hold the city information
-    let cityLoc = "";
-    // If the user did in fact specify a cty...
-    if (city !== "") {
-        // Set cityLoc to a query string that will return breweries for that city
-        cityLoc = "&by_city=" + city;
+// Function to filter by brewery sizes selected (or to allow the default if none selected)
+function brewerySizeFilter() {
+    // Make sure the brewerySize array is empty before checking for selections and pushing them in
+    brewerySize = [];
+    // For each of the size selection checkboxes...
+    $(".sizeSelect").each(function () {
+        // If the box is checked...
+        if ($(this).prop("checked") === true) {
+            // Push the ID attribute of that checkbox into the sizes array
+            brewerySize.push($(this).attr("id"));
+        }
+    });
+    // If after filtering for the user's selections the array is empty...
+    if (brewerySize.length === 0) {
+        // Automatically populate the array so breweries of all the sizes we care about will return
+        // This hardcode prevents inclusion of breweries with types we don't want (i.e., planning, bar, proprietor, contract)
+        brewerySize = ["brewpub", "micro", "regional", "large"];
     }
-    // Set the global location query with state and city information
-    locationQuery = "&by_state=" + state + cityLoc;
+    // Console log the size array to test
+    console.log(brewerySize);
 }
 
-// Function to get rid of the markers currently on the map so new ones can be placed
-function clearMarkers() {
-    // Loop through the brewMarks array, for each...
-    for (let i = 0; i < brewMarks.length; i++) {
-        // Set the map display to null
-        brewMarks[i].setMap(null);
-    }
-    // As the last step, empty the array of markers
-    brewMarks = [];
-}
-
-// Function to mark the breweries on the map
+// Function to retrieve the breweries from our APIs and mark them on the map
 function markBreweries() {
     // First, make sure the location query for the OpenBreweryDB API is set
     setLocationQuery();
@@ -76,13 +130,16 @@ function markBreweries() {
     clearMarkers();
     // Reset the brewIndex to zero for counting through the brewMarks and breweries arrays
     brewIndex = 0;
+    // Reset the AJAX call/response number variables so you can track when all responses have come in
+    ajaxCallNum = 0;
+    ajaxRespNum = 0;
     // Ajax call for OpenBreweryDB
     $.ajax({
         url: queryURL + locationQuery,
         method: "GET"
     })
         // When the ajax call returns...
-        .then(function (brewResp) {
+        .done(function (brewResp) {
             console.log(brewResp);
             // Loop through the breweries returned one at a time...
             for (let i = 0; i < brewResp.length; i++) {
@@ -93,16 +150,24 @@ function markBreweries() {
                     let queryName = name.split("&").join("").split("-").join("");
                     // Stipulate a query to the google maps API using the name, city, and state specified, as well as the specific "fields" we want data for
                     // Add /proxy/ to the beginning of the query URL so we avoid CORS errors
-                    let googleQuery = `/proxy/https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating,place_id&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
-                    // Make an ajax call to the google maps API using the url above
+                    let googleQuery = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating,place_id&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
+                    // Right before you make the AJAX call, increment the callnumber variable
+                    ajaxCallNum++;
+                    // Set the googleQuery up to route through CORS Anywhere to avoid CORS errors
+                    $.ajaxPrefilter(function (options) {
+                        if (options.crossDomain && jQuery.support.cors) {
+                            options.url = 'https://cors-anywhere.herokuapp.com/' + options.url;
+                        }
+                    });
+                    // Make an ajax call to the google maps API
                     $.ajax({
                         url: googleQuery,
                         method: "GET"
                     })
                         // When the ajax call returns...
-                        .done(function (googleRespStr) {
+                        .done(function (googleResp) {
                             // Parse the string that returns from the AJAX call into JSON
-                            let googleResp = JSON.parse(googleRespStr)
+                            // let googleResp = JSON.parse(googleRespStr)
                             // First, make sure the google response was successful and has the "OK" status
                             if (googleResp.status === "OK") {
                                 // Create a reference for the index of the candidates array returned by the Google call, default to 0
@@ -191,126 +256,165 @@ function markBreweries() {
                                     console.log(breweries);
                                     // Increment the brewIndex to so the next go round will use the right index for reference
                                     brewIndex++;
-                                    //console.log(breweries);
                                 }
                             }
+                            // As a last step before finishing with the AJAX response, increment the ajax response number
+                            ajaxRespNum++;
                         });
                 };
             };
         });
 };
 
+// Function to get rid of the markers currently on the map so new ones can be placed
+function clearMarkers() {
+    // Loop through the brewMarks array, for each...
+    for (let i = 0; i < brewMarks.length; i++) {
+        // Set the map display to null
+        brewMarks[i].setMap(null);
+    }
+    // As the last step, empty the array of markers
+    brewMarks = [];
+}
+
+// Function to set the location query
+function setLocationQuery() {
+    // Temp variable to hold the city information
+    let cityLoc = "";
+    // If the user did in fact specify a cty...
+    if (city !== "") {
+        // Set cityLoc to a query string that will return breweries for that city
+        cityLoc = "&by_city=" + city;
+    }
+    // Set the global location query with state and city information
+    locationQuery = "&by_state=" + state + cityLoc;
+}
+
+// Function to populate the list of breweries
+function listBreweries() {
+    // Make sure the html for the closed and open divs is empty
+    openAtm.empty();
+    closedAtm.empty();
+    // Loop through the breweries array...
+    for (let i = 0; i < breweries.length; i++) {
+        // If the brewery at the current index has an openNow property of true...
+        if (breweries[i].openNow) {
+            // Create a new div
+            let newDiv = $("<div>");
+            // Give the new div classes relevant to its status as an open brewery
+            newDiv.addClass("brewery open-brewery");
+            // Give the new div an ID equal to its Google place ID
+            newDiv.attr("id", breweries[i].place_id);
+            // Set the html of the new div
+            newDiv.html(`<h5 id="brewName">${breweries[i].name}</h5>
+            <div class="columns">
+            <div class="column"><p>Map number: ${breweries[i].number}</p><p><strong>Open right now!</strong></p><p>Customer rating: ${breweries[i].rating}</p><a href="${breweries[i].website}" target="_blank">Website</a><p></div>
+            <div class="column"><p>Address:</p><p>${breweries[i].address}</p></div>
+            </div>`)
+            // Append this newDiv to the openAtm div
+            openAtm.append(newDiv);
+        }
+        // Otherwise, it must be closed, so...
+        else {
+            // Create a new div
+            let newDiv = $("<div>");
+            // Give the new div classes relevant to its status as a closed brewery
+            newDiv.addClass("brewery closed-brewery");
+            // Give the new div an ID equal to its Google place ID
+            newDiv.attr("id", breweries[i].place_id);
+            // Set the html of the new div
+            newDiv.html(`<h5 id="brewName">${breweries[i].name}</h5>
+            <div class="columns">
+            <div class="column"><p>Map number: ${breweries[i].number}</p><p>Closed right now</p><p>Customer rating: ${breweries[i].rating}</p><a href="${breweries[i].website}" target="_blank">Website</a><p></div>
+            <div class="column"><p>Address:</p><p>${breweries[i].address}</p></div>
+            </div>`)
+            // Append this newDiv to the openAtm div
+            closedAtm.append(newDiv);
+        }
+    }
+    // Append the openAtm div to the infoDisplay
+    $("#infoDisplay").append(openAtm);
+    // Create a button that will let users expand the information window to show closed breweries
+    let displayToggle = $("<button>");
+    // Apply an id to the button
+    displayToggle.attr("id", "displayToggle");
+    // Give it a data attribute that indicates whether the closed breweries are currently shown
+    displayToggle.attr("data-state", "hidden");
+    // Give it some text to describe what its function is
+    displayToggle.text("Show closed breweries");
+    // Append the button to the bottom of the dataOutput column so it's always at the bottom
+    // whether the closed breweries are shown or not
+    $("#dataOutput").append(displayToggle);
+}
+
+// Function to display something when a marker on the map is clicked
 function markerClicked() {
     alert("marker clicked");
 }
 
-// Function to filter by brewery sizes selected (or to allow the default if none selected)
-function brewerySizeFilter() {
-    // Make sure the brewerySize array is empty before checking for selections and pushingthem in
-    brewerySize = [];
-    // For each of the size selection checkboxes...
-    $(".sizeSelect").each(function () {
-        // If the box is checked...
-        if ($(this).prop("checked") === true) {
-            // Push the ID attribute of that checkbox into the sizes array
-            brewerySize.push($(this).attr("id"));
+// Button click event to initiate the search
+$("#btnSubmit").on("click", function () {
+    // Get rid of any existing displayToggle buttons and open/closed display divs
+    $("#infoDisplay").empty();
+    $("#displayToggle").remove();
+    // See if the user selected certain brewery types
+    brewerySizeFilter();
+    // Put the brewery markers on the map
+    markBreweries();
+    // Create a counter variable for the interval
+    let intervalCount = 0;
+    // This will allow us to clear the interval if 30 seconds go by with no action
+    // This is important because the fact that we set our conditional to test for equality between the ajax counts
+    // and stipulate that there must be more than 0 ajax calls means that a search location that actually has
+    // zero breweries will not trigger the conditions necessary to clear the interval
+
+    // Create an interval interval to check on the ajax responses
+    ajaxCheckIn = setInterval(function () {
+        // Increment the interval counter
+        intervalCount++;
+        //Console log to test
+        console.log("interval pass through #: " + intervalCount);
+        // If the response number becomes equal to the call number...
+        if (ajaxRespNum === ajaxCallNum && ajaxCallNum !== 0) {
+            // Console log for testing
+            console.log("Ready to list the breweries");
+            // Clear the interval
+            clearInterval(ajaxCheckIn);
+            // List the breweries
+            listBreweries();
         }
-    });
-    // If after filtering for the user's selections the array is empty...
-    if (brewerySize.length === 0) {
-        // Automatically populate the array so breweries of all sizes will return
-        brewerySize = ["brewpub", "micro", "regional", "large"];
+        // If the interval count has reached 30 and there have been no ajax calls to Google...
+        else if (intervalCount === 30 && ajaxCallNum === 0) {
+            // Clear the interval
+            clearInterval(ajaxCheckIn);
+            // Put a message into the infoDisplay that tells the user something is up
+            let searchTimeout = $("<div>");
+            searchTimeout.html("<p>Sorry, something must have gone wrong. We couldn't find any of the information you requested within 30 seconds.</p><p>Maybe our connection to you is bad.</p><p>Maybe there aren't any breweries here.</p>")
+            $("#infoDisplay").append(searchTimeout);
+        }
+        // Fire the check in every second
+    }, 1000);
+});
+
+// Button click event to toggle display for the list of breweries currently closed
+$(document).on("click", "#displayToggle", function () {
+    // If the data-state attribute says that the closed breweries are hidden...
+    if ($(this).attr("data-state") === "hidden") {
+        // Append the closedAtm div to the infoDisplay
+        $("#infoDisplay").append(closedAtm);
+        // Change the button text to indicate that it can be pressed again to hide the closed breweries
+        $(this).text("Hide closed breweries");
+        // Change the data-state attribute to reflect that the closed breweries are now visible
+        $(this).attr("data-state", "visible");
     }
-    // Console log the size array to test
-    console.log(brewerySize);
-}
+    // Otherwise, the breweries must already be showing, so...
+    else {
+        // Remove the closedAtm div from the dom
+        $("#closedAtm").remove();
+        // Change the button text to indicate that it can be pressed again to show the closed breweries
+        $(this).text("Show closed breweries");
+        // Change the data-state attribute to reflect that the closed breweries are now hidden
+        $(this).attr("data-state", "hidden");
+    }
+})
 
-// Callback function from the map script at the end.  Not sure how that is working
-function initMap() {
-    map = new google.maps.Map(document.getElementById("map"), {
-        //37.5407246, lng: -77.4360481  --Richmond
-        //39.381266 N,-97.922211 W  --USA
-        //center: {lat: 50.064192, lng: -130.605469},
-        center: { lat: 39.381266, lng: -97.922211 },
-        zoom: 4,
-        disableDefaultUI: true      //don't display any of the controls.  May want to change this after
-        //mapTypeControl: false
-    });
-
-    let card = document.getElementById('pac-card');
-    let input = document.getElementById('pac-input');
-    // var countries = document.getElementById('country-selector');
-
-    //This put the card on top of the map   map.controls[google.maps.ControlPosition.TOP_RIGHT].push(card);
-
-    //this setups up the autocomplete of the address input
-    let autocomplete = new google.maps.places.Autocomplete(input);
-
-    // Set initial restrict to the greater list of countries.
-    autocomplete.setComponentRestrictions(
-        { 'country': ['us'] });
-
-    // Specify only the data fields that are needed.
-    autocomplete.setFields(
-        ['address_components', 'geometry', 'icon', 'name']);
-
-    let infowindow = new google.maps.InfoWindow();
-    let infowindowContent = document.getElementById('infowindow-content');
-    infowindow.setContent(infowindowContent);
-    //create a marker for the city
-    let marker = new google.maps.Marker({
-        map: map,
-        anchorPoint: new google.maps.Point(0, -29)
-    });
-
-
-    //this triggers the reset of the map based on new location
-    autocomplete.addListener('place_changed', function () {
-        infowindow.close();
-        // Set the marker to invisible so it doesn't actually appear on the map
-        marker.setVisible(false);
-        let place = autocomplete.getPlace();
-        console.log("place");
-        console.log(place);
-
-        if (!place.geometry) {
-            // User entered the name of a Place that was not suggested and
-            // pressed the Enter key, or the Place Details request failed.
-            window.alert("No details available for input: '" + place.name + "'");
-            return;
-        }
-
-        // If the place has a geometry, then present it on a map.
-        if (place.geometry.viewport) {
-            map.fitBounds(place.geometry.viewport);
-        } else {
-            map.setCenter(place.geometry.location);
-            map.setZoom(17);  // Why 17? Because it looks good.
-        }
-        marker.setPosition(place.geometry.location);
-        marker.setVisible(false);
-
-        //add a listener for the marker
-        marker.addListener('click', markerClicked);
-        console.log("address: " + place.address_components);
-        console.log("geometry: " + place.geometry.location);    //lat and lng
-        console.log("icon: " + place.icon);
-        console.log("name: " + place.name);
-        console.log("viewport: " + place.geometry.viewport);
-
-        //initializze and get the city/state for the beer query
-        city = "";
-        state = "";
-        getCityState(place);
-
-
-    });
-
-    //button to initiate the search
-    $("#button").on("click", function (event) {
-        //see if they've selected certain brewery types
-        brewerySizeFilter();
-        markBreweries();
-    });
-
-}
