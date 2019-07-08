@@ -266,12 +266,6 @@ function markBreweries() {
         });
 };
 
-$.ajaxPrefilter(function (options) {
-    if (options.crossDomain && jQuery.support.cors) {
-        options.url = 'https://cors-anywhere.herokuapp.com/' + options.url;
-    }
-});
-
 // Function to get rid of the markers currently on the map so new ones can be placed
 function clearMarkers() {
     // Loop through the brewMarks array, for each...
