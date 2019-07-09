@@ -29,15 +29,8 @@ let locationQuery = "";
 // Array to house the brewery size(s) specified by the user
 let brewerySize = [];
 
-// Variable to hold the number of AJAX calls sent to the Google API on a search
-let ajaxCallNum = 0;
-
-// Variable to hold the number of AJAX responses from the Google API
-let ajaxRespNum = 0;
-
 // Map variable to hold data for the map expanse
 let map;
-
 
 // Callback function from the map script at the end
 function initMap() {
@@ -130,16 +123,17 @@ function markBreweries() {
     // First, make sure the location query for the OpenBreweryDB API is set
     setLocationQuery();
     // Then set the general queryURL for the OpenBreweryDB API - limit to 20
-    let queryURL = "https://api.openbrewerydb.org/breweries?per_page=20"
+    let queryURL = "https://api.openbrewerydb.org/breweries?per_page=50"
     // Before making the ajax call, make sure the breweries array is emptied
     breweries = [];
     // Clear any markers that have already been placed on the map
     clearMarkers();
     // Reset the brewIndex to zero for counting through the brewMarks and breweries arrays
     brewIndex = 0;
-    // Reset the AJAX call/response number variables so you can track when all responses have come in
-    ajaxCallNum = 0;
-    ajaxRespNum = 0;
+    // Setup the ajax prefilter to route through our dedicated CORS server
+    $.ajaxPrefilter(function (options) {
+        options.url = 'https://dvavs-hmb-cors-proxy.herokuapp.com/' + queryURL + locationQuery;
+    });
     // Ajax call for OpenBreweryDB
     $.ajax({
         url: queryURL + locationQuery,
@@ -158,9 +152,7 @@ function markBreweries() {
                     // Stipulate a query to the google maps API using the name, city, and state specified, as well as the specific "fields" we want data for
                     // Add /proxy/ to the beginning of the query URL so we avoid CORS errors
                     let googleQuery = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating,place_id&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
-                    // Right before you make the AJAX call, increment the callnumber variable
-                    ajaxCallNum++;
-                    // Set the googleQuery up to route through our app's personal CORS proxy to avoid CORS errors
+                    // Setup the ajax prefilter to route through our dedicated CORS server
                     $.ajaxPrefilter(function (options) {
                         if (options.crossDomain && jQuery.support.cors) {
                             options.url = 'https://dvavs-hmb-cors-proxy.herokuapp.com/' + googleQuery;
@@ -279,14 +271,13 @@ function markBreweries() {
                                     listBreweries(brewIndex);
                                     // Increment the brewIndex to so the next go round will use the right index for reference
                                     brewIndex++;
+                                    //Console log the set of breweries that should be displayed to test
+                                    console.log(breweries);
                                 }
                             }
-                            // As a last step before finishing with the AJAX response, increment the ajax response number
-                            ajaxRespNum++;
                         });
                 };
             };
-            //daw need to display the show closed button
             // Append the openAtm div to the infoDisplay
             $("#infoDisplay").append(openAtm);
             // Create a button that will let users expand the information window to show closed breweries
@@ -328,7 +319,6 @@ function setLocationQuery() {
 }
 
 // Function to populate the list of breweries
-//daw change function to be called once passing in the index.
 function listBreweries(i) {
     // If the brewery at the current index has an openNow property of true...
     if (breweries[i].openNow) {
@@ -377,7 +367,7 @@ $("#btnSubmit").on("click", function () {
     // Get rid of any existing displayToggle buttons and open/closed display divs
     $("#infoDisplay").empty();
     $("#displayToggle").remove();
-    //daw clear open/closed before populating
+    //Clear open/closed divs before populating
     openAtm.empty();
     closedAtm.empty();
     // See if the user selected certain brewery types
