@@ -38,6 +38,7 @@ let ajaxRespNum = 0;
 // Map variable to hold data for the map expanse
 let map;
 
+
 // Callback function from the map script at the end
 function initMap() {
     // Initialize the map
@@ -46,7 +47,13 @@ function initMap() {
         center: { lat: 39.381266, lng: -97.922211 },
         zoom: 4,
         // Disable the default UI map controls
-        disableDefaultUI: true,
+        //don't need all controls
+        zoomControl: true,
+        mapTypeControl: false,
+        scaleControl: true,
+        streetViewControl: false,
+        rotateControl: false,
+        fullscreenControl: true
     });
     let input = document.getElementById('pac-input');
     // Set up the autocomplete functionality for the address input
@@ -245,7 +252,20 @@ function markBreweries() {
                                     }
                                     // Push the newBrew[] object into the breweries array so we can use it later
                                     breweries.push(newBrew);
-                                    // Create a new marker and put it on the map
+                                    // this will allow for different attributes or icons to be added to the marker.  Need to discuss with team.
+                                    /*
+                                        brewMarks[brewIndex] = new google.maps.Marker({
+                                            position: {
+                                                lat: breweries[brewIndex].lat,
+                                                lng: breweries[brewIndex].lng
+                                            },
+                                            map: map,
+                                            icon: { url: "assets/images/green.png", scaledSize: new google.maps.Size(40, 40) },
+                                            title: breweries[brewIndex].name,
+                                            label: { text: brewNum.toString(), color: "#ffffff", fontSize: "20px", border:"0" }
+                                        });
+                                    */
+
                                     brewMarks[brewIndex] = new google.maps.Marker({
                                         position: {
                                             lat: breweries[brewIndex].lat,
@@ -254,10 +274,13 @@ function markBreweries() {
                                         map: map,
                                         title: breweries[brewIndex].name,
                                         label: brewNum.toString()
-                                    })
-                                    console.log("name:" + name + " lat: " + breweries[brewIndex].lat + " lng: " + breweries[brewIndex].lng);
-                                    console.log(googleResp);
-                                    console.log(breweries);
+                                    });
+
+                                    //  console.log("name:" + name + " lat: " + breweries[brewIndex].lat + " lng: " + breweries[brewIndex].lng);
+                                    //  console.log(googleResp);
+                                    //  console.log(breweries);
+                                    //add the brewerie to the list
+                                    listBreweries(brewIndex);
                                     // Increment the brewIndex to so the next go round will use the right index for reference
                                     brewIndex++;
                                 }
@@ -267,6 +290,20 @@ function markBreweries() {
                         });
                 };
             };
+            //daw need to display the show closed button
+            // Append the openAtm div to the infoDisplay
+            $("#infoDisplay").append(openAtm);
+            // Create a button that will let users expand the information window to show closed breweries
+            let displayToggle = $("<button>");
+            // Apply an id to the button
+            displayToggle.attr("id", "displayToggle");
+            // Give it a data attribute that indicates whether the closed breweries are currently shown
+            displayToggle.attr("data-state", "hidden");
+            // Give it some text to describe what its function is
+            displayToggle.text("Show closed breweries");
+            // Append the button to the bottom of the dataOutput column so it's always at the bottom
+            // whether the closed breweries are shown or not
+            $("#dataOutput").append(displayToggle);
         });
 };
 
@@ -295,60 +332,43 @@ function setLocationQuery() {
 }
 
 // Function to populate the list of breweries
-function listBreweries() {
-    // Make sure the html for the closed and open divs is empty
-    openAtm.empty();
-    closedAtm.empty();
-    // Loop through the breweries array...
-    for (let i = 0; i < breweries.length; i++) {
-        // If the brewery at the current index has an openNow property of true...
-        if (breweries[i].openNow) {
-            // Create a new div
-            let newDiv = $("<div>");
-            // Give the new div classes relevant to its status as an open brewery
-            newDiv.addClass("brewery open-brewery");
-            // Give the new div an ID equal to its Google place ID
-            newDiv.attr("id", breweries[i].place_id);
-            // Set the html of the new div
-            newDiv.html(`<h5 id="brewName">${breweries[i].name}</h5>
+//daw change function to be called once passing in the index.
+function listBreweries(i) {
+    // If the brewery at the current index has an openNow property of true...
+    if (breweries[i].openNow) {
+        // Create a new div
+        let newDiv = $("<div>");
+        // Give the new div classes relevant to its status as an open brewery
+        newDiv.addClass("brewery open-brewery");
+        // Give the new div an ID equal to its Google place ID
+        newDiv.attr("id", breweries[i].place_id);
+        // Set the html of the new div
+        newDiv.html(`<h5 id="brewName">${breweries[i].name}</h5>
             <div class="columns">
             <div class="column"><p>Map number: ${breweries[i].number}</p><p><strong>Open right now!</strong></p><p>Customer rating: ${breweries[i].rating}</p><a href="${breweries[i].website}" target="_blank">Website</a><p></div>
             <div class="column"><p>Address:</p><p>${breweries[i].address}</p></div>
             </div>`)
-            // Append this newDiv to the openAtm div
-            openAtm.append(newDiv);
-        }
-        // Otherwise, it must be closed, so...
-        else {
-            // Create a new div
-            let newDiv = $("<div>");
-            // Give the new div classes relevant to its status as a closed brewery
-            newDiv.addClass("brewery closed-brewery");
-            // Give the new div an ID equal to its Google place ID
-            newDiv.attr("id", breweries[i].place_id);
-            // Set the html of the new div
-            newDiv.html(`<h5 id="brewName">${breweries[i].name}</h5>
+        // Append this newDiv to the openAtm div
+        openAtm.append(newDiv);
+    }
+    // Otherwise, it must be closed, so...
+    else {
+        // Create a new div
+        let newDiv = $("<div>");
+        // Give the new div classes relevant to its status as a closed brewery
+        newDiv.addClass("brewery closed-brewery");
+        // Give the new div an ID equal to its Google place ID
+        newDiv.attr("id", breweries[i].place_id);
+        // Set the html of the new div
+        newDiv.html(`<h5 id="brewName">${breweries[i].name}</h5>
             <div class="columns">
             <div class="column"><p>Map number: ${breweries[i].number}</p><p>Closed right now</p><p>Customer rating: ${breweries[i].rating}</p><a href="${breweries[i].website}" target="_blank">Website</a><p></div>
             <div class="column"><p>Address:</p><p>${breweries[i].address}</p></div>
             </div>`)
-            // Append this newDiv to the openAtm div
-            closedAtm.append(newDiv);
-        }
+        // Append this newDiv to the openAtm div
+        closedAtm.append(newDiv);
     }
-    // Append the openAtm div to the infoDisplay
-    $("#infoDisplay").append(openAtm);
-    // Create a button that will let users expand the information window to show closed breweries
-    let displayToggle = $("<button>");
-    // Apply an id to the button
-    displayToggle.attr("id", "displayToggle");
-    // Give it a data attribute that indicates whether the closed breweries are currently shown
-    displayToggle.attr("data-state", "hidden");
-    // Give it some text to describe what its function is
-    displayToggle.text("Show closed breweries");
-    // Append the button to the bottom of the dataOutput column so it's always at the bottom
-    // whether the closed breweries are shown or not
-    $("#dataOutput").append(displayToggle);
+
 }
 
 // Function to display something when a marker on the map is clicked
@@ -361,44 +381,15 @@ $("#btnSubmit").on("click", function () {
     // Get rid of any existing displayToggle buttons and open/closed display divs
     $("#infoDisplay").empty();
     $("#displayToggle").remove();
+    //daw clear open/closed before populating
+    openAtm.empty();
+    closedAtm.empty();
     // See if the user selected certain brewery types
     brewerySizeFilter();
     // Put the brewery markers on the map
     markBreweries();
-    // Create a counter variable for the interval
-    let intervalCount = 0;
-    // This will allow us to clear the interval if 30 seconds go by with no action
-    // This is important because the fact that we set our conditional to test for equality between the ajax counts
-    // and stipulate that there must be more than 0 ajax calls means that a search location that actually has
-    // zero breweries will not trigger the conditions necessary to clear the interval
-
-    // Create an interval interval to check on the ajax responses
-    ajaxCheckIn = setInterval(function () {
-        // Increment the interval counter
-        intervalCount++;
-        //Console log to test
-        console.log("interval pass through #: " + intervalCount);
-        // If the response number becomes equal to the call number...
-        if (ajaxRespNum === ajaxCallNum && ajaxCallNum !== 0) {
-            // Console log for testing
-            console.log("Ready to list the breweries");
-            // Clear the interval
-            clearInterval(ajaxCheckIn);
-            // List the breweries
-            listBreweries();
-        }
-        // If the interval count has reached 30 and there have been no ajax calls to Google...
-        else if (intervalCount === 30 && ajaxCallNum === 0) {
-            // Clear the interval
-            clearInterval(ajaxCheckIn);
-            // Put a message into the infoDisplay that tells the user something is up
-            let searchTimeout = $("<div>");
-            searchTimeout.html("<p>Sorry, something must have gone wrong. We couldn't find any of the information you requested within 30 seconds.</p><p>Maybe our connection to you is bad.</p><p>Maybe there aren't any breweries here.</p>")
-            $("#infoDisplay").append(searchTimeout);
-        }
-        // Fire the check in every second
-    }, 1000);
 });
+
 
 // Button click event to toggle display for the list of breweries currently closed
 $(document).on("click", "#displayToggle", function () {
