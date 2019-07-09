@@ -150,7 +150,7 @@ function markBreweries() {
                     let queryName = name.split("&").join("").split("-").join("");
                     // Stipulate a query to the google maps API using the name, city, and state specified, as well as the specific "fields" we want data for
                     // Add /proxy/ to the beginning of the query URL so we avoid CORS errors
-                    let googleQuery = `/proxy/https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating,place_id&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
+                    let googleQuery = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating,place_id&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
                     // Right before you make the AJAX call, increment the callnumber variable
                     ajaxCallNum++;
                     // Set the googleQuery up to route through our app's personal CORS proxy to avoid CORS errors
