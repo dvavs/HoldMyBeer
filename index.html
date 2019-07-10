@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <title>Hold My Beer</title>
+    <title>Hold My Beer!</title>
 
 
     <!-- Bulma CSS, contains a reset -->
@@ -80,10 +80,25 @@
                 <a class="button is-warning" id="btnSubmit">Submit</a>
             </div>
 
+            <!-- If the user enters an incomplete city/state, a modal window will appear -->
+            <div id="error-modal" class="modal">
+                <div class="modal-background"></div>
+                <div id="error-card" class="card">
+                    <div id="error-header" class="card-header">
+                        There was a problem!
+                    </div>
+                    <div id="error-msg" class="modal-content card-content">
+                    </div>
+                </div>
+                <button class="modal-close" aria-label="close"></button>
+                <!--If message too big or small, we can add "is-small, medium,... to "modal-close"-->
+            </div>
+
+            <!--Map-->
             <div class="column" id="dataOutput">
                 <div id="map">
                 </div>
-                
+
                 <!-- Content div with information about breweries, accomodations, etc. TBD -->
                 <div id="infoDisplay"></div>
             </div>
@@ -104,4 +119,5 @@
         async defer></script>
 
 </body>
+
 </html>

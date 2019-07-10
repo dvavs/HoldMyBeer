@@ -4,21 +4,35 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
+/* Header */
+#header {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+#header-text, #subtitle {
+  color: hsl(0, 71%, 8%);
+  text-align: center;
+}
+#header-text {
+  font-weight: 700;
+}
+
+/* Search column */
 .columns {
   margin: -5px 0 5px 0;
 }
-
 #parameterSelect {
   color: hsl(0, 71%, 8%);  
   text-align: left;
   font-size: 15pt;
-
 }
 .custom-control-input {
   height: 15px;
   position: relative;
 }
-
+#all {
+  font-size: 10pt;
+  margin-bottom: 5px;
+}
 #btnSubmit {
   color: hsl(0, 71%, 8%);
   font-size: 12pt;
@@ -27,11 +41,7 @@
   margin: 20px 0 20px 0;
 }
 
-#all {
-  font-size: 10pt;
-  margin-bottom: 5px;
-}
-
+/* Map column */
 #map {
   border: 1px solid rgba(14, 3, 3, 0.2);
   height: 400px;
@@ -40,25 +50,12 @@
   margin-left: 5px;
   border-radius: 5px;
 }
-
 #infoDisplay {
   margin: 20px 0 0 5px;
   color: hsl(0, 71%, 8%);  
 }
 
-#header {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-#header-text, #subtitle {
-  color: hsl(0, 71%, 8%);
-  text-align: center;
-}
-
-#header-text {
-  font-weight: 700;
-}
-
+/* Footer */
 footer  {
   width: 100%;
   height: 40px;
@@ -81,7 +78,7 @@ footer p {
 }
 
 
-/* Google API css */
+/* Google API search and display css */
 #description {
   font-family: Roboto;
   font-size: 15px;

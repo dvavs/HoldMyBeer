@@ -35,6 +35,9 @@ let map;
 //main marker for selected location
 let mainMarker;
 
+// Reference variable for the place specified by the user
+let place;
+
 // Callback function from the map script at the end
 function initMap() {
     // Initialize the map
@@ -64,7 +67,7 @@ function initMap() {
     // Autocomplete listener to trigger map movement based on new location
 
     autocomplete.addListener("place_changed", function () {
-        let place = autocomplete.getPlace();
+        place = autocomplete.getPlace();
         console.log("place");
         console.log(place);
 
@@ -72,7 +75,9 @@ function initMap() {
         if (!place.geometry) {
             // User entered the name of a Place that was not suggested and
             // pressed the Enter key, or the Place Details request failed
-            window.alert("No details available for input: '" + place.name + "'");
+            $("#error-modal").addClass("is-active");
+            $("#error-msg").html(`<p>No location was returned for your input: ${place.name}.</p>
+            <p>Please select from one of the autocomplete suggestions.</p>`)
             return;
         }
         // Otherwise, it must have geometry, so...
@@ -165,162 +170,168 @@ function markBreweries() {
         // When the ajax call returns...
         .done(function (brewResp) {
             console.log(brewResp);
-            // Loop through the breweries returned one at a time...
-            for (let i = 0; i < brewResp.length; i++) {
-                // If the brewery's size property can be found inside the array of sizes (either specified by user or auto populated if they specified none)
-                if (brewerySize.indexOf(brewResp[i].brewery_type) > -1) {
-                    // Create a name variable to reference the brewery name
-                    let name = brewResp[i].name;
-                    let queryName = name.split("&").join("").split("-").join("");
-                    // Stipulate a query to the google maps API using the name, city, and state specified, as well as the specific "fields" we want data for
-                    // Add /proxy/ to the beginning of the query URL so we avoid CORS errors
-                    let googleQuery = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating,place_id&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
-                    // Setup the ajax prefilter to route through our dedicated CORS server
-                    $.ajaxPrefilter(function (options) {
-                        if (options.crossDomain && jQuery.support.cors) {
-                            options.url = 'https://dvavs-hmb-cors-proxy.herokuapp.com/' + googleQuery;
-                        }
-                    });
-                    // Make an ajax call to the google maps API
-                    $.ajax({
-                        url: googleQuery,
-                        method: "GET"
-                    })
-                        // When the ajax call returns...
-                        .done(function (googleResp) {
-                            // Parse the string that returns from the AJAX call into JSON
-                            // let googleResp = JSON.parse(googleRespStr) ---- Keep this in case we need to revert back to /proxy/ method
-                            // First, make sure the google response was successful and has the "OK" status
-                            if (googleResp.status === "OK") {
-                                // Create a reference for the index of the candidates array returned by the Google call, default to 0
-                                let googleIndex = 0;
-                                // Create a reference for the name of the object at the googleIndex
-                                let duplicateTestName = googleResp.candidates[0].name;
-                                // Stipulate a boolean that says not to skip this google response
-                                let skipThis = false;
-                                // Check to see if the item at the googleIndex is a duplicate of something already in the breweries array
-                                // Loop through items in the breweries array...
-                                for (let i = 0; i < breweries.length; i++) {
-                                    // If the object at index i has the googleName in its name property...
-                                    if (breweries[i].name === duplicateTestName) {
-                                        // Create a new index to test the next candidate
-                                        let newIndex = googleIndex + 1;
-                                        // Check to see whether there actually is another candidate you could choose from. If so...
-                                        if (googleResp.candidates[newIndex] !== undefined) {
-                                            // Change the google index
-                                            googleIndex = newIndex;
-                                            // This isn't the perfect solution because it assumes that the second option is not a duplicate
-                                            // But it works for the edge cases we've encountered (haven't seen more than 2 entries)
-                                            // Couldn't figure out how to do this in its own self-reiterating function because it got mad that the googleIndex wasn't defined at that level
+            // If the response from the ajax call is empty...
+            if (brewResp.length === 0) {
+                // Display an error message in the modal element
+                $("#error-modal").addClass("is-active");
+                $("#error-msg").html(`<p>We didn't find any breweries of the type you asked for in ${place.name}.</p>
+                <p>Are you sure you really want to go there?`);
+            } // If the response is NOT empty, you're good to go
+            else {
+                // Loop through the breweries returned one at a time...
+                for (let i = 0; i < brewResp.length; i++) {
+                    // If the brewery's size property can be found inside the array of sizes (either specified by user or auto populated if they specified none)
+                    if (brewerySize.indexOf(brewResp[i].brewery_type) > -1) {
+                        // Create a name variable to reference the brewery name
+                        let name = brewResp[i].name;
+                        let queryName = name.split("&").join("").split("-").join("");
+                        // Stipulate a query to the google maps API using the name, city, and state specified, as well as the specific "fields" we want data for
+                        // Add /proxy/ to the beginning of the query URL so we avoid CORS errors
+                        let googleQuery = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${queryName.split(" ").join("%20")}+${city}+${state}&inputtype=textquery&fields=photos,geometry,formatted_address,name,opening_hours,rating,place_id&key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU`
+                        // Setup the ajax prefilter to route through our dedicated CORS server
+                        $.ajaxPrefilter(function (options) {
+                            if (options.crossDomain && jQuery.support.cors) {
+                                options.url = 'https://dvavs-hmb-cors-proxy.herokuapp.com/' + googleQuery;
+                            }
+                        });
+                        // Make an ajax call to the google maps API
+                        $.ajax({
+                            url: googleQuery,
+                            method: "GET"
+                        })
+                            // When the ajax call returns...
+                            .done(function (googleResp) {
+                                // Parse the string that returns from the AJAX call into JSON
+                                // let googleResp = JSON.parse(googleRespStr) ---- Keep this in case we need to revert back to /proxy/ method
+                                // First, make sure the google response was successful and has the "OK" status
+                                if (googleResp.status === "OK") {
+                                    // Create a reference for the index of the candidates array returned by the Google call, default to 0
+                                    let googleIndex = 0;
+                                    // Create a reference for the name of the object at the googleIndex
+                                    let duplicateTestName = googleResp.candidates[0].name;
+                                    // Stipulate a boolean that says not to skip this google response
+                                    let skipThis = false;
+                                    // Check to see if the item at the googleIndex is a duplicate of something already in the breweries array
+                                    // Loop through items in the breweries array...
+                                    for (let i = 0; i < breweries.length; i++) {
+                                        // If the object at index i has the googleName in its name property...
+                                        if (breweries[i].name === duplicateTestName) {
+                                            // Create a new index to test the next candidate
+                                            let newIndex = googleIndex + 1;
+                                            // Check to see whether there actually is another candidate you could choose from. If so...
+                                            if (googleResp.candidates[newIndex] !== undefined) {
+                                                // Change the google index
+                                                googleIndex = newIndex;
+                                                // This isn't the perfect solution because it assumes that the second option is not a duplicate
+                                                // But it works for the edge cases we've encountered (haven't seen more than 2 entries)
+                                                // Couldn't figure out how to do this in its own self-reiterating function because it got mad that the googleIndex wasn't defined at that level
+                                            }
+                                            // If there isn't another candidate to choose from...
+                                            else {
+                                                // Set the skipThis boolean to true
+                                                skipThis = true;
+                                            }
                                         }
-                                        // If there isn't another candidate to choose from...
-                                        else {
-                                            // Set the skipThis boolean to true
-                                            skipThis = true;
+                                    }
+                                    console.log("skip this? " + skipThis);
+                                    // If skipThis isn't changed to be true after checking whether the current response is a duplicate...
+                                    if (!skipThis) {
+                                        // Create a brewNum variable so the map number label for the brewery can be put inside its object
+                                        let brewNum = brewIndex + 1
+                                        // Create variables for elements that may not exist and default so all tags have values
+                                        let openNowVar = false;
+                                        let ratingVar = "N/A";
+                                        // Make sure the open hours parent property exists, and the child
+                                        if (googleResp.candidates[googleIndex].hasOwnProperty('opening_hours') && googleResp.candidates[googleIndex].opening_hours.hasOwnProperty('open_now')) {
+                                            // If so, change the openNowVar to reflect the information
+                                            openNowVar = googleResp.candidates[googleIndex].opening_hours.open_now;
                                         }
-                                    }
-                                }
-                                //console.log("skip this? " + skipThis);
-                                // If skipThis isn't changed to be true after checking whether the current response is a duplicate...
-                                if (!skipThis) {
-                                    // Create a brewNum variable so the map number label for the brewery can be put inside its object
-                                    let brewNum = brewIndex + 1
-                                    // Create variables for elements that may not exist and default so all tags have values
-                                    let openNowVar = false;
-                                    let ratingVar = "N/A";
-                                    // Make sure the open hours parent property exists, and the child
-                                    if (googleResp.candidates[googleIndex].hasOwnProperty('opening_hours') && googleResp.candidates[googleIndex].opening_hours.hasOwnProperty('open_now')) {
-                                        // If so, change the openNowVar to reflect the information
-                                        openNowVar = googleResp.candidates[googleIndex].opening_hours.open_now;
-                                    }
-                                    // Make sure the rating property exists
-                                    if (googleResp.candidates[googleIndex].hasOwnProperty('rating')) {
-                                        // If so, change the ratingVar to reflect the information
-                                        ratingVar = googleResp.candidates[googleIndex].rating;
-                                    }
-                                    // Create an object, fill it with the information from each API that we need
-                                    let newBrew = {
-                                        // Map number (equal to the current brew index +1)
-                                        number: brewNum,
-                                        // Name (from the Google name property)
-                                        name: googleResp.candidates[googleIndex].name,
-                                        // Type (from the OpenBreweryDB brewery_type property)
-                                        type: brewResp[i].brewery_type,
-                                        // Website (from the OpenBreweryDB website_url property)
-                                        website: brewResp[i].website_url,
-                                        // Address (from the Google formatted_address property)
-                                        address: googleResp.candidates[googleIndex].formatted_address,
-                                        // Rating (from the Google rating property)
-                                        rating: ratingVar,
-                                        // Open now boolean (from the Google open_hours open_now property)
-                                        openNow: openNowVar,
-                                        // Latitude (from the Google geometry location lat property)
-                                        lat: googleResp.candidates[googleIndex].geometry.location.lat,
-                                        // Longitude (from the Google geometry location lng property)
-                                        lng: googleResp.candidates[googleIndex].geometry.location.lng,
-                                        // Place id so we can get details if clicked on
-                                        place_id: googleResp.candidates[googleIndex].place_id
-                                    }
-                                    // Push the newBrew[] object into the breweries array so we can use it later
-                                    breweries.push(newBrew);
-                                    // this will allow for different attributes or icons to be added to the marker.  Need to discuss with team.
-                                    /*
+                                        // Make sure the rating property exists
+                                        if (googleResp.candidates[googleIndex].hasOwnProperty('rating')) {
+                                            // If so, change the ratingVar to reflect the information
+                                            ratingVar = googleResp.candidates[googleIndex].rating;
+                                        }
+                                        // Create an object, fill it with the information from each API that we need
+                                        let newBrew = {
+                                            // Map number (equal to the current brew index +1)
+                                            number: brewNum,
+                                            // Name (from the Google name property)
+                                            name: googleResp.candidates[googleIndex].name,
+                                            // Type (from the OpenBreweryDB brewery_type property)
+                                            type: brewResp[i].brewery_type,
+                                            // Website (from the OpenBreweryDB website_url property)
+                                            website: brewResp[i].website_url,
+                                            // Address (from the Google formatted_address property)
+                                            address: googleResp.candidates[googleIndex].formatted_address,
+                                            // Rating (from the Google rating property)
+                                            rating: ratingVar,
+                                            // Open now boolean (from the Google open_hours open_now property)
+                                            openNow: openNowVar,
+                                            // Latitude (from the Google geometry location lat property)
+                                            lat: googleResp.candidates[googleIndex].geometry.location.lat,
+                                            // Longitude (from the Google geometry location lng property)
+                                            lng: googleResp.candidates[googleIndex].geometry.location.lng,
+                                            // Place id so we can get details if clicked on
+                                            place_id: googleResp.candidates[googleIndex].place_id
+                                        }
+                                        // Push the newBrew[] object into the breweries array so we can use it later
+                                        breweries.push(newBrew);
+                                        // this will allow for different attributes or icons to be added to the marker.  Need to discuss with team.
                                         brewMarks[brewIndex] = new google.maps.Marker({
                                             position: {
                                                 lat: breweries[brewIndex].lat,
                                                 lng: breweries[brewIndex].lng
                                             },
                                             map: map,
-                                            icon: { url: "assets/images/green.png", scaledSize: new google.maps.Size(40, 40) },
                                             title: breweries[brewIndex].name,
-                                            label: { text: brewNum.toString(), color: "#ffffff", fontSize: "20px", border:"0" }
+                                            label: brewNum.toString()
                                         });
-                                    */
 
-                                    //brewMarks[brewIndex] = new google.maps.Marker({
-                                    //create a marker for each brewery.  Can be used anem over, does not need unique name.
-                                    brewMarks[brewIndex] = new google.maps.Marker({
-                                        position: {
-                                            lat: breweries[brewIndex].lat,
-                                            lng: breweries[brewIndex].lng
-                                        },
-                                        map: map,
-                                        title: breweries[brewIndex].name,
-                                        label: brewNum.toString()
-                                    });
-                                    //this will add a listener to call the modal when they click
-                                    google.maps.event.addListener(brewMarks[brewIndex], 'click', function () {
-                                        //$('#marker-modal').modal('show')
-                                        alert("you got me")
-                                    });
+                                        //brewMarks[brewIndex] = new google.maps.Marker({
+                                        //create a marker for each brewery.  Can be used anem over, does not need unique name.
+                                        brewMarks[brewIndex] = new google.maps.Marker({
+                                            position: {
+                                                lat: breweries[brewIndex].lat,
+                                                lng: breweries[brewIndex].lng
+                                            },
+                                            map: map,
+                                            title: breweries[brewIndex].name,
+                                            label: brewNum.toString()
+                                        });
+                                        //this will add a listener to call the modal when they click
+                                        google.maps.event.addListener(brewMarks[brewIndex], 'click', function () {
+                                            //$('#marker-modal').modal('show')
+                                            alert("you got me")
+                                        });
 
-                                    //  console.log("name:" + name + " lat: " + breweries[brewIndex].lat + " lng: " + breweries[brewIndex].lng);
-                                    //  console.log(googleResp);
-                                    //  console.log(breweries);
-                                    //add the brewerie to the list
-                                    listBreweries(brewIndex);
-                                    // Increment the brewIndex to so the next go round will use the right index for reference
-                                    brewIndex++;
-                                    //Console log the set of breweries that should be displayed to test
-                                    console.log(breweries);
+                                        //  console.log("name:" + name + " lat: " + breweries[brewIndex].lat + " lng: " + breweries[brewIndex].lng);
+                                        //  console.log(googleResp);
+                                        //  console.log(breweries);
+                                        //add the brewerie to the list
+                                        listBreweries(brewIndex);
+                                        // Increment the brewIndex to so the next go round will use the right index for reference
+                                        brewIndex++;
+                                        //Console log the set of breweries that should be displayed to test
+                                        console.log(breweries);
+                                    }
                                 }
-                            }
-                        });
+                            });
+                    };
                 };
-            };
-            // Append the openAtm div to the infoDisplay
-            $("#infoDisplay").append(openAtm);
-            // Create a button that will let users expand the information window to show closed breweries
-            let displayToggle = $("<button>");
-            // Apply an id to the button
-            displayToggle.attr("id", "displayToggle");
-            // Give it a data attribute that indicates whether the closed breweries are currently shown
-            displayToggle.attr("data-state", "hidden");
-            // Give it some text to describe what its function is
-            displayToggle.text("Show closed breweries");
-            // Append the button to the bottom of the dataOutput column so it's always at the bottom
-            // whether the closed breweries are shown or not
-            $("#dataOutput").append(displayToggle);
+                // Append the openAtm div to the infoDisplay
+                $("#infoDisplay").append(openAtm);
+                // Create a button that will let users expand the information window to show closed breweries
+                let displayToggle = $("<button>");
+                // Apply an id to the button
+                displayToggle.attr("id", "displayToggle");
+                // Give it a data attribute that indicates whether the closed breweries are currently shown
+                displayToggle.attr("data-state", "hidden");
+                // Give it some text to describe what its function is
+                displayToggle.text("Show closed breweries");
+                // Append the button to the bottom of the dataOutput column so it's always at the bottom
+                // whether the closed breweries are shown or not
+                $("#dataOutput").append(displayToggle);
+            }
         });
 };
 
@@ -425,3 +436,9 @@ $(document).on("click", "#displayToggle", function () {
     }
 })
 
+// Button click event for close-modal buttons
+$(".modal-close").on("click", function () {
+    // Whatever modal is open, close it on click of a modal-close button
+    $("#error-modal").attr("class", "modal");
+    $("#marker-modal").attr("class", "modal");
+});
