@@ -89,12 +89,14 @@ function initMap() {
         place = autocomplete.getPlace();
         // If the place has no geometry...
         if (!place.geometry) {
-            // User entered the name of a Place that was not suggested and
-            // pressed the Enter key, or the Place Details request failed
+            // User entered the name of a Place that was not suggested and pressed the Enter key, or the Place Details request failed
+            // Display an error message telling the user
             $("#error-modal").addClass("is-active");
             $("#error-msg").html(`<p>No location was returned for your input: ${place.name}.</p>
             <p>Please select from one of the autocomplete suggestions.</p>`)
-            return;
+            // Re-apply the original message that appears in the info display
+            $("#infoDisplay").prepend("<p>Nothing yet. Try a search!</p>")
+
         }
         // Otherwise, it must have geometry, so...
         else {
