@@ -33,7 +33,7 @@
   font-size: 10pt;
   margin-bottom: 5px;
 }
-#btnSubmit {
+#btnSubmit, #displayToggle {
   color: hsl(0, 71%, 8%);
   font-size: 12pt;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -50,9 +50,38 @@
   margin-left: 5px;
   border-radius: 5px;
 }
+
+/*Results*/
 #infoDisplay {
   margin: 20px 0 0 5px;
   color: hsl(0, 71%, 8%);  
+}
+.card {
+  margin-left: 5px;
+  border-radius: 5px;
+  width: 100%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);  
+}
+.card-header {
+  color: hsl(0, 71%, 8%);
+  background-color: hsl(48, 100%, 67%);
+  font-size: 20px;
+}
+#brewName {
+  font-weight: 700;
+}
+.open-brewery, .closed-brewery {
+  line-height: 15px;
+  margin-bottom: 30px;
+  color: hsl(0, 71%, 8%);
+}
+#open {
+  color: rgb(15, 175, 15);
+  font-weight: 700;
+}
+#closed {
+  color: rgb(243, 50, 76);
+  font-weight: 700;
 }
 
 /* Footer */
@@ -65,7 +94,6 @@ footer  {
   position: relative;
   margin-top: -14px; 
 }
-
 footer p {
   margin: auto 0;
   color: rgba(255, 255, 255, 0.85);
@@ -77,26 +105,21 @@ footer p {
   transform: translateX(-50%);
 }
 
-
 /* Google API search and display css */
 #description {
   font-family: Roboto;
   font-size: 15px;
   font-weight: 300;
 }
-
 #infowindow-content .title {
   font-weight: bold;
 }
-
 #infowindow-content {
   display: none;
 }
-
 #map #infowindow-content {
   display: inline;
 }
-
 .pac-card {
   margin: 10px 10px 20px 0;
   width: 100%;
@@ -108,24 +131,20 @@ footer p {
   background-color: #fff;
   font-family: Roboto;
 }
-
 #pac-container {
   padding-bottom: 12px;
   padding-right: 12px;
   margin-right: 12px;
 }
-
 .pac-controls {
   display: inline-block;
   padding: 5px 11px;
 }
-
 .pac-controls label {
   font-family: Roboto;
   font-size: 13px;
   font-weight: 300;
 }
-
 #pac-input {
   background-color: #fff;
   font-family: Roboto;
@@ -138,11 +157,9 @@ footer p {
   width: relative;
   height: 40px;
 }
-
 #pac-input:focus {
   border-color: #4d90fe;
 }
-
 #title {
   color: hsl(0, 71%, 8%);
   background-color: hsl(48, 100%, 67%);

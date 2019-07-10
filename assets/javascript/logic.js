@@ -282,12 +282,13 @@ function markBreweries() {
             $("#infoDisplay").append(openAtm);
             // Create a button that will let users expand the information window to show closed breweries
             let displayToggle = $("<button>");
-            // Apply an id to the button
+            // Apply a class and an id to the button
+            displayToggle.attr("class", "button is-warning")
             displayToggle.attr("id", "displayToggle");
             // Give it a data attribute that indicates whether the closed breweries are currently shown
             displayToggle.attr("data-state", "hidden");
             // Give it some text to describe what its function is
-            displayToggle.text("Show closed breweries");
+            displayToggle.text("Show Closed Breweries");
             // Append the button to the bottom of the dataOutput column so it's always at the bottom
             // whether the closed breweries are shown or not
             $("#dataOutput").append(displayToggle);
@@ -331,7 +332,7 @@ function listBreweries(i) {
         // Set the html of the new div
         newDiv.html(`<h5 id="brewName">${breweries[i].name}</h5>
             <div class="columns">
-            <div class="column"><p>Map number: ${breweries[i].number}</p><p><strong>Open right now!</strong></p><p>Customer rating: ${breweries[i].rating}</p><a href="${breweries[i].website}" target="_blank">Website</a><p></div>
+            <div class="column"><p>Map number: ${breweries[i].number}</p><p id="open">Open right now!</p><p>Customer rating: ${breweries[i].rating}</p><a href="${breweries[i].website}" target="_blank">Website</a><p></div>
             <div class="column"><p>Address:</p><p>${breweries[i].address}</p></div>
             </div>`)
         // Append this newDiv to the openAtm div
@@ -348,7 +349,7 @@ function listBreweries(i) {
         // Set the html of the new div
         newDiv.html(`<h5 id="brewName">${breweries[i].name}</h5>
             <div class="columns">
-            <div class="column"><p>Map number: ${breweries[i].number}</p><p>Closed right now</p><p>Customer rating: ${breweries[i].rating}</p><a href="${breweries[i].website}" target="_blank">Website</a><p></div>
+            <div class="column"><p>Map number: ${breweries[i].number}</p><p id="closed">Closed right now</p><p>Customer rating: ${breweries[i].rating}</p><a href="${breweries[i].website}" target="_blank">Website</a><p></div>
             <div class="column"><p>Address:</p><p>${breweries[i].address}</p></div>
             </div>`)
         // Append this newDiv to the openAtm div

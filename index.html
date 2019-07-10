@@ -79,7 +79,7 @@
                 </form>
                 <a class="button is-warning" id="btnSubmit">Submit</a>
             </div>
-            
+
             <!-- If the user enters an incomplete city/state, a modal window will appear -->
             <div class="modal">
                 <div class="modal-background"></div>
@@ -93,25 +93,36 @@
             <div class="column" id="dataOutput">
                 <div id="map">
                 </div>
-                
+                <br>
                 <!-- Content div with information about breweries, accomodations, etc. TBD -->
-                <div id="infoDisplay"></div>
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            Results
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <div class="content">
+                            <div id="infoDisplay"></div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Sticky footer that will never come above the bottom of the page -->
-    <footer>
-        <p>Team Firefoxes</p>
-    </footer>
+        <!-- Sticky footer that will never come above the bottom of the page -->
+        <footer>
+            <p>Team Firefoxes</p>
+        </footer>
 
-    <!-- link to our app-specific JavaScript -->
-    <script src="assets/javascript/logic.js"></script>
+        <!-- link to our app-specific JavaScript -->
+        <script src="assets/javascript/logic.js"></script>
 
-    <!-- link to initialize the map -->
-    <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU&libraries=places&callback=initMap"
-        async defer></script>
+        <!-- link to initialize the map -->
+        <script
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU&libraries=places&callback=initMap"
+            async defer></script>
 
 </body>
 
