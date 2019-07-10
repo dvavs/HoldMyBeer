@@ -3,7 +3,7 @@
 let openAtm = $('<div id="openAtm">');
 
 // Reference variable that will be turned into a div holding info on breweries that are CLOSED atm (at the moment)
-let closedAtm = $('<div id="closedAtm">');
+//let closedAtm = $('<div id="closedAtm">');
 
 // Reference for the place specified by the user
 let place;
@@ -41,20 +41,6 @@ let brewIndex = 0;
 //variable to exclude those that are currently closed
 
 let excludeClosed = true;
-
-// Generic function to find an object within an array by a specific key:value pair
-// Pass in the name of the array, the key you want to test, and the value you want to test for
-function findObjectByKey(array, key, value) {
-    // Loop through items in the array...
-    for (var i = 0; i < array.length; i++) {
-        // If the object at index i has the specified key:value pair...
-        if (array[i][key] === value) {
-            return i;
-        }
-    }
-    // If you don't get an index from the above for loop, return null
-    return null;
-}
 
 // Callback function from the map script at the end
 function initMap() {
@@ -483,8 +469,8 @@ function listBreweries(i) {
 // Button click event to initiate the search
 $("#btnSubmit").on("click", function () {
 
-    //need to make sure they entered something in
-    if ($("#pac-input").val().trim() == "") {
+    //need to make sure they entered at least a state
+    if ($("#pac-input").val().trim() == "" || state == "") {
         $("#error-modal").addClass("is-active");
         $("#error-msg").html('<p>Please select a city and state.</p>')
     }
@@ -495,7 +481,7 @@ $("#btnSubmit").on("click", function () {
         //    $("#displayToggle").remove();
         //Clear open/closed divs before populating
         openAtm.empty();
-        closedAtm.empty();
+//        closedAtm.empty();
 
         // See if the user selected certain brewery types
         brewerySizeFilter();
