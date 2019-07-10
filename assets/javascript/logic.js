@@ -3,7 +3,7 @@
 let openAtm = $('<div id="openAtm">');
 
 // Reference variable that will be turned into a div holding info on breweries that are CLOSED atm (at the moment)
-//let closedAtm = $('<div id="closedAtm">');
+let closedAtm = $('<div id="closedAtm">');
 
 // Reference for the place specified by the user
 let place;
@@ -253,7 +253,6 @@ function markBreweries() {
                                 }
                                 //console.log("skip this? " + skipThis);
 
-
                                 // Create variables for elements that may not exist and default so all tags have values
                                 let openNowVar = false;
                                 let ratingVar = "N/A";
@@ -376,30 +375,9 @@ function markBreweries() {
             }
             // Otherwise, there is at least one brewery on the list, so...
             else {
-                // Append the openAtm div to the infoDisplay
+                // Append the openAtm and closedAtm divs to the infoDisplay
                 $("#infoDisplay").append(openAtm);
-                // Count the number of divs inside the openAtm div
-                /*not currently working, remove for now
-                let openCount = $("#openAtm .brewery").length;
-                // If there are no open breweries...
-                //if (openCount === 0) {
-                    // Display a message to that effect inside the info display
-                    $("#infoDisplay").prepend($("<h1>Nobody's open at this hour!</h1>"))
-                }
-                */
-                //not going to use this functionality  clean up later.
-                // Create a button that will let users expand the information window to show closed breweries
-                /*             let displayToggle = $("<button>");
-                                // Apply a class and an id to the button
-                                displayToggle.attr("class", "button is-warning")
-                                displayToggle.attr("id", "displayToggle");
-                                // Give it a data attribute that indicates whether the closed breweries are currently shown
-                                displayToggle.attr("data-state", "hidden");
-                                // Give it some text to describe what its function is
-                                displayToggle.text("Show who's closed right now");
-                                // Append the button to the bottom of the dataOutput column so it's always at the bottom
-                                // whether the closed breweries are shown or not
-                                $("#dataOutput").append(displayToggle);*/
+                $("#infoDisplay").append(closedAtm);
             }
         });
 };
@@ -462,7 +440,7 @@ function listBreweries(i) {
             <div class="column"><p>Address:</p><p>${breweries[i].address}</p></div>
             </div>`)
         // Append this newDiv to the openAtm div
-        openAtm.append(newDiv);
+        closedAtm.append(newDiv);
     }
 }
 
@@ -481,37 +459,15 @@ $("#btnSubmit").on("click", function () {
         //    $("#displayToggle").remove();
         //Clear open/closed divs before populating
         openAtm.empty();
-//        closedAtm.empty();
+        closedAtm.empty();
 
         // See if the user selected certain brewery types
         brewerySizeFilter();
         // Put the brewery markers on the map
         markBreweries();
-        //if an address is selected, let's zoom out so we can see the breweries.
+
     }
 });
-
-// Button click event to toggle display for the list of breweries currently closed
-/*$(document).on("click", "#displayToggle", function () {
-    // If the data-state attribute says that the closed breweries are hidden...
-    if ($(this).attr("data-state") === "hidden") {
-        // Append the closedAtm div to the infoDisplay
-        $("#infoDisplay").append(closedAtm);
-        // Change the button text to indicate that it can be pressed again to hide the closed breweries
-        $(this).text("Hide who's closed right now");
-        // Change the data-state attribute to reflect that the closed breweries are now visible
-        $(this).attr("data-state", "visible");
-    }
-    // Otherwise, the breweries must already be showing, so...
-    else {
-        // Remove the closedAtm div from the dom
-        $("#closedAtm").remove();
-        // Change the button text to indicate that it can be pressed again to show the closed breweries
-        $(this).text("Show who's closed right now");
-        // Change the data-state attribute to reflect that the closed breweries are now hidden
-        $(this).attr("data-state", "hidden");
-    }
-})*/
 
 // Button click event for close-modal buttons
 $(".delete").on("click", function () {
