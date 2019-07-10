@@ -80,19 +80,31 @@
                 <a class="button is-warning" id="btnSubmit">Submit</a>
             </div>
 
-            <!-- If the user enters an incomplete city/state, a modal window will appear -->
+            <!-- If the user enters an incomplete city/state, a modal window will appear. I commented this out but wanted to keep it until we get the card version working.
+
             <div id="error-modal" class="modal">
                 <div class="modal-background"></div>
-                <div id="error-card" class="card">
-                    <div id="error-header" class="card-header">
-                        There was a problem!
+                <div class="modal-card" id="error-card">
+                    <div id="error-header" class="modal-card-head">
+                        <p class="modal-card-title">There was a problem!</p>
                     </div>
-                    <div id="error-msg" class="modal-content card-content">
-                    </div>
+                    <section id="error-msg" class="modal-content card-content">
+                    </section>
+                <button class="modal-close is-large"></button>                    
                 </div>
-                <button class="modal-close" aria-label="close"></button>
-                <!--If message too big or small, we can add "is-small, medium,... to "modal-close"-->
-            </div>
+            </div>-->
+
+            <!--Card style Error Modal window. This brings the X in the header but needs to have an on.click function applied to it -->
+            <div class="modal" id="error-modal">
+                <div class="modal-background"></div>
+                <div class="modal-card">
+                  <header class="modal-card-head" >
+                    <p class="modal-card-title">There was a problem!</p>
+                    <button class="delete"></button>
+                  </header>
+                  <section class="modal-card-body" id="error-msg"></section>
+                </div>
+              </div>
 
             <!--Map-->
             <div class="column" id="dataOutput">
