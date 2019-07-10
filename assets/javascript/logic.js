@@ -38,8 +38,8 @@ let googleCallNum = 0;
 // Index variable to count through the brewMarks and breweries variables in context where a for loop is impossible
 let brewIndex = 0;
 
-//variable to exclude those that are currently closed
 
+// Variable to exclude those that are currently closed
 let excludeClosed = true;
 
 // Callback function from the map script at the end
@@ -60,25 +60,23 @@ function initMap() {
     let input = document.getElementById('pac-input');
     // Set up the autocomplete functionality for the address input
     let autocomplete = new google.maps.places.Autocomplete(input);
-    // Set initial restrict to the greater list of countries.
+    // Set initial restrict to the greater list of countries
     autocomplete.setComponentRestrictions(
         { 'country': ['us'] });
-    // Specify only the data fields that are needed.
+    // Specify only the data fields that are needed
     autocomplete.setFields(
         ['address_components', 'geometry', 'icon', 'name']);
     // Autocomplete listener to trigger map movement based on new location
     autocomplete.addListener("place_changed", function () {
-        //need to clear the pins when place changed.
+        // Clear the pins when place is changed
         if (mainMarker !== undefined) {
             mainMarker.setMap(null);
         }
         clearMarkers();
-
-        //clear out the list of previous breweries
+        // Get rid of any existing displayToggle buttons and open/closed display divs
         $("#infoDisplay").empty();
-
+        $("#displayToggle").remove();
         // Set the place variable equal to the user's suggestion
-
         place = autocomplete.getPlace();
         // Clear the marker from any possible previous locations selected
         console.log("place");
@@ -95,7 +93,7 @@ function initMap() {
         // Otherwise, it must have geometry, so...
         else {
             // Change the map so that it shows that place
-            // If the place has a geometry, then present it on a map.
+            // If the place has a geometry, then present it on a map
             if (place.geometry.viewport) {
                 map.fitBounds(place.geometry.viewport);
             } else {
@@ -159,7 +157,7 @@ function brewerySizeFilter() {
     // Console log the size array to test
     console.log(brewerySize);
 
-    //need to see if they don't want to see those closed.
+    // Need to see if they don't want to see those closed.
     $(".excludeclosed").each(function () {
         //console.log("closed checked: " + $(this).prop("checked"))
         excludeClosed = $(this).prop("checked");
@@ -174,11 +172,9 @@ function markBreweries() {
     googleCallNum = 0;
     // Reset the brewIndex to zero for counting through the brewMarks and breweries arrays
     brewIndex = 0;
-    // Clear whatever is in the current info display
-    $("#infoDisplay").empty();
+    // Reset the openCount so we can start counting up from 0 again
+    openCount = 0;
     // Clear any markers that have already been placed on the map
-    clearMarkers();
-    // Make sure the location query for the OpenBreweryDB API is set
     setLocationQuery();
     // Then set the general queryURL for the OpenBreweryDB API - limit to 20
     let queryURL = "https://api.openbrewerydb.org/breweries?per_page=50"
@@ -410,6 +406,8 @@ function setLocationQuery() {
 function listBreweries(i) {
     // If the brewery at the current index has an openNow property of true...
     if (breweries[i].openNow) {
+        // Increment the openCount
+        openCount++;
         // Create a new open brewery div
         let newDiv = $("<div>");
         // Give the new div classes relevant to its status as an open brewery
@@ -446,8 +444,7 @@ function listBreweries(i) {
 
 // Button click event to initiate the search
 $("#btnSubmit").on("click", function () {
-
-    //need to make sure they entered at least a state
+    // Make sure they entered at least a state
     if ($("#pac-input").val().trim() == "" || state == "") {
         $("#error-modal").addClass("is-active");
         $("#error-msg").html('<p>Please select a city and state.</p>')
@@ -473,5 +470,5 @@ $("#btnSubmit").on("click", function () {
 $(".delete").on("click", function () {
     // Whatever modal is open, close it on click of a modal-close button
     $("#error-modal").attr("class", "modal");
-    $("#marker-modal").attr("class", "modal");
+    // $("#marker-modal").attr("class", "modal");
 });
