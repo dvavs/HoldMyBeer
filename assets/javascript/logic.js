@@ -32,6 +32,9 @@ let brewerySize = [];
 // Map variable to hold data for the map expanse
 let map;
 
+//main marker for selected location
+let mainMarker;
+
 // Reference variable for the place specified by the user
 let place;
 
@@ -51,6 +54,7 @@ function initMap() {
         rotateControl: false,
         fullscreenControl: true
     });
+
     let input = document.getElementById('pac-input');
     // Set up the autocomplete functionality for the address input
     let autocomplete = new google.maps.places.Autocomplete(input);
@@ -61,10 +65,12 @@ function initMap() {
     autocomplete.setFields(
         ['address_components', 'geometry', 'icon', 'name']);
     // Autocomplete listener to trigger map movement based on new location
+
     autocomplete.addListener("place_changed", function () {
         place = autocomplete.getPlace();
         console.log("place");
         console.log(place);
+
         // If the place has no geometry...
         if (!place.geometry) {
             // User entered the name of a Place that was not suggested and
@@ -77,7 +83,24 @@ function initMap() {
         // Otherwise, it must have geometry, so...
         else {
             // Change the map so that it shows that place
-            map.fitBounds(place.geometry.viewport);
+            // If the place has a geometry, then present it on a map.
+            if (place.geometry.viewport) {
+                map.fitBounds(place.geometry.viewport);
+            } else {
+                map.setCenter(place.geometry.location);
+                map.setZoom(17);  // Why 17? Because it looks good.
+            }
+            console.log("zoom: " + map.getZoom())
+
+            //create a marker for the selected location
+            mainMarker = new google.maps.Marker({
+                map: map,
+                title: place.name,
+                icon: { url: "assets/images/yellow.png", scaledSize: new google.maps.Size(40, 40) },
+                anchorPoint: new google.maps.Point(0, -29)
+            });
+            mainMarker.setPosition(place.geometry.location);
+            console.log("zoom1: " + map.getZoom())
         }
         // Then pull the relevant city/state data from the user query
         getCityState(place);
@@ -254,19 +277,6 @@ function markBreweries() {
                                         // Push the newBrew[] object into the breweries array so we can use it later
                                         breweries.push(newBrew);
                                         // this will allow for different attributes or icons to be added to the marker.  Need to discuss with team.
-                                        /*
-                                            brewMarks[brewIndex] = new google.maps.Marker({
-                                                position: {
-                                                    lat: breweries[brewIndex].lat,
-                                                    lng: breweries[brewIndex].lng
-                                                },
-                                                map: map,
-                                                icon: { url: "assets/images/green.png", scaledSize: new google.maps.Size(40, 40) },
-                                                title: breweries[brewIndex].name,
-                                                label: { text: brewNum.toString(), color: "#ffffff", fontSize: "20px", border:"0" }
-                                            });
-                                        */
-
                                         brewMarks[brewIndex] = new google.maps.Marker({
                                             position: {
                                                 lat: breweries[brewIndex].lat,
@@ -275,6 +285,23 @@ function markBreweries() {
                                             map: map,
                                             title: breweries[brewIndex].name,
                                             label: brewNum.toString()
+                                        });
+
+                                        //brewMarks[brewIndex] = new google.maps.Marker({
+                                        //create a marker for each brewery.  Can be used anem over, does not need unique name.
+                                        brewMarks[brewIndex] = new google.maps.Marker({
+                                            position: {
+                                                lat: breweries[brewIndex].lat,
+                                                lng: breweries[brewIndex].lng
+                                            },
+                                            map: map,
+                                            title: breweries[brewIndex].name,
+                                            label: brewNum.toString()
+                                        });
+                                        //this will add a listener to call the modal when they click
+                                        google.maps.event.addListener(brewMarks[brewIndex], 'click', function () {
+                                            //$('#marker-modal').modal('show')
+                                            alert("you got me")
                                         });
 
                                         //  console.log("name:" + name + " lat: " + breweries[brewIndex].lat + " lng: " + breweries[brewIndex].lng);
@@ -368,12 +395,6 @@ function listBreweries(i) {
         // Append this newDiv to the openAtm div
         closedAtm.append(newDiv);
     }
-
-}
-
-// Function to display something when a marker on the map is clicked
-function markerClicked() {
-    alert("marker clicked");
 }
 
 // Button click event to initiate the search
@@ -388,6 +409,8 @@ $("#btnSubmit").on("click", function () {
     brewerySizeFilter();
     // Put the brewery markers on the map
     markBreweries();
+    //if an address is selected, let's zoom out so we can see the breweries.
+    console.log("zoom 3: " + map.getZoom())
 });
 
 
