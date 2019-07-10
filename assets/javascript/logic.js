@@ -41,6 +41,15 @@ let brewIndex = 0;
 // Variable to exclude those that are currently closed
 let excludeClosed = true;
 
+// Generic function to pull the open/closed status of a brewery from its object and return a string
+let openStr = function (obj) {
+    if (obj.openNow) {
+        return "Open now";
+    } else {
+        return "Closed now";
+    }
+};
+
 // Callback function from the map script at the end
 function initMap() {
     // Initialize the map
@@ -300,13 +309,6 @@ function markBreweries() {
                                         label: brewNum.toString()
                                     });
                                     // Stipulate the content for the info window
-                                    let openStr = function (obj) {
-                                        if (obj.open) {
-                                            return "Open now";
-                                        } else {
-                                            return "Closed now";
-                                        }
-                                    };
                                     let infoContent = `<div id="infoWindow">
                                     <div id="infoWindowTitle">${newBrew.name}</div>
                                         <div class="columns" id="infoWindowContent">
