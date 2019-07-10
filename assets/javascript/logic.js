@@ -32,10 +32,11 @@ let brewerySize = [];
 // Map variable to hold data for the map expanse
 let map;
 
-//main marker for selected location
-let mainMarker;
+// Reference for the main marker indicating selected location
+// For some reason can only be cleared from the map if the marker exists inside an array
+let mainMarker = [];
 
-// Reference variable for the place specified by the user
+// Reference for the place specified by the user
 let place;
 
 // Callback function from the map script at the end
@@ -46,7 +47,6 @@ function initMap() {
         center: { lat: 39.381266, lng: -97.922211 },
         zoom: 4,
         // Disable the default UI map controls
-        //don't need all controls
         zoomControl: true,
         mapTypeControl: false,
         scaleControl: true,
@@ -54,7 +54,6 @@ function initMap() {
         rotateControl: false,
         fullscreenControl: true
     });
-
     let input = document.getElementById('pac-input');
     // Set up the autocomplete functionality for the address input
     let autocomplete = new google.maps.places.Autocomplete(input);
@@ -65,12 +64,12 @@ function initMap() {
     autocomplete.setFields(
         ['address_components', 'geometry', 'icon', 'name']);
     // Autocomplete listener to trigger map movement based on new location
-
     autocomplete.addListener("place_changed", function () {
+        // Set the place variable equal to the user's suggestion
         place = autocomplete.getPlace();
+        // Clear the marker from any possible previous locations selected
         console.log("place");
         console.log(place);
-
         // If the place has no geometry...
         if (!place.geometry) {
             // User entered the name of a Place that was not suggested and
@@ -90,16 +89,18 @@ function initMap() {
                 map.setCenter(place.geometry.location);
                 map.setZoom(17);  // Why 17? Because it looks good.
             }
-            console.log("zoom: " + map.getZoom())
-
-            //create a marker for the selected location
+            console.log("zoom: " + map.getZoom());
+            // Format the main marker object to hold data relevant to the selected location
             mainMarker = new google.maps.Marker({
                 map: map,
                 title: place.name,
                 icon: { url: "assets/images/yellow.png", scaledSize: new google.maps.Size(40, 40) },
                 anchorPoint: new google.maps.Point(0, -29)
             });
+            // Set the position of the marker
             mainMarker.setPosition(place.geometry.location);
+            // Call the setMap method again to make the new main marker appear
+            mainMarker.setMap(map);
             console.log("zoom1: " + map.getZoom())
         }
         // Then pull the relevant city/state data from the user query
@@ -276,42 +277,27 @@ function markBreweries() {
                                         }
                                         // Push the newBrew[] object into the breweries array so we can use it later
                                         breweries.push(newBrew);
-                                        // this will allow for different attributes or icons to be added to the marker.  Need to discuss with team.
+                                        // Create a marker for each brewery, does not need unique name
                                         brewMarks[brewIndex] = new google.maps.Marker({
                                             position: {
                                                 lat: breweries[brewIndex].lat,
                                                 lng: breweries[brewIndex].lng
                                             },
                                             map: map,
+                                            icon: { color: "green" },
                                             title: breweries[brewIndex].name,
                                             label: brewNum.toString()
                                         });
-
-                                        //brewMarks[brewIndex] = new google.maps.Marker({
-                                        //create a marker for each brewery.  Can be used anem over, does not need unique name.
-                                        brewMarks[brewIndex] = new google.maps.Marker({
-                                            position: {
-                                                lat: breweries[brewIndex].lat,
-                                                lng: breweries[brewIndex].lng
-                                            },
-                                            map: map,
-                                            title: breweries[brewIndex].name,
-                                            label: brewNum.toString()
-                                        });
-                                        //this will add a listener to call the modal when they click
+                                        // Set a listener to call the modal when the marker is clicked
                                         google.maps.event.addListener(brewMarks[brewIndex], 'click', function () {
-                                            //$('#marker-modal').modal('show')
-                                            alert("you got me")
+                                            $("#marker-modal").addClass("is-active");
+                                            alert("you got me");
                                         });
-
-                                        //  console.log("name:" + name + " lat: " + breweries[brewIndex].lat + " lng: " + breweries[brewIndex].lng);
-                                        //  console.log(googleResp);
-                                        //  console.log(breweries);
-                                        //add the brewerie to the list
+                                        // Add the brewery to the list
                                         listBreweries(brewIndex);
                                         // Increment the brewIndex to so the next go round will use the right index for reference
                                         brewIndex++;
-                                        //Console log the set of breweries that should be displayed to test
+                                        // Console log the set of breweries that should be displayed to test
                                         console.log(breweries);
                                     }
                                 }
