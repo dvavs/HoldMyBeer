@@ -52,6 +52,11 @@
 }
 
 /* Info window */
+
+#infoWindow {
+  height: 90px;
+}
+
 #infoWindowTitle {
   font-weight: bold;
   color: hsl(0, 71%, 8%);
