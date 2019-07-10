@@ -38,19 +38,8 @@ let googleCallNum = 0;
 // Index variable to count through the brewMarks and breweries variables in context where a for loop is impossible
 let brewIndex = 0;
 
-// Generic function to find an object within an array by a specific key:value pair
-// Pass in the name of the array, the key you want to test, and the value you want to test for
-function findObjectByKey(array, key, value) {
-    // Loop through items in the array...
-    for (var i = 0; i < array.length; i++) {
-        // If the object at index i has the specified key:value pair...
-        if (array[i][key] === value) {
-            return i;
-        }
-    }
-    // If you don't get an index from the above for loop, return null
-    return null;
-}
+// Counter variable for number of open breweries, to use for "nobody is open right now" message display testing
+let openCount = 0;
 
 // Callback function from the map script at the end
 function initMap() {
@@ -80,15 +69,13 @@ function initMap() {
     autocomplete.addListener("place_changed", function () {
         //need to clear the pins when place changed.
         if (mainMarker !== undefined) {
-            mainMarker.setMap(null);   
+            mainMarker.setMap(null);
         }
         clearMarkers();
-
-        //clear out the list of previous breweries
+        // Get rid of any existing displayToggle buttons and open/closed display divs
         $("#infoDisplay").empty();
-
+        $("#displayToggle").remove();
         // Set the place variable equal to the user's suggestion
-
         place = autocomplete.getPlace();
         // Clear the marker from any possible previous locations selected
         console.log("place");
@@ -178,11 +165,9 @@ function markBreweries() {
     googleCallNum = 0;
     // Reset the brewIndex to zero for counting through the brewMarks and breweries arrays
     brewIndex = 0;
-    // Clear whatever is in the current info display
-    $("#infoDisplay").empty();
+    // Reset the openCount so we can start counting up from 0 again
+    openCount = 0;
     // Clear any markers that have already been placed on the map
-    clearMarkers();
-    // Make sure the location query for the OpenBreweryDB API is set
     setLocationQuery();
     // Then set the general queryURL for the OpenBreweryDB API - limit to 20
     let queryURL = "https://api.openbrewerydb.org/breweries?per_page=50"
@@ -311,7 +296,7 @@ function markBreweries() {
                                     // GOOGLE INFO WINDOW DISPLAY ON CLICK
                                     // Seems like the better option to go with to me - not as stylized but better functionality
                                     // Stipulate the content for the info window
-                                    let openStr = function(obj) {
+                                    let openStr = function (obj) {
                                         if (obj.open) {
                                             return "Open right now";
                                         } else {
@@ -373,13 +358,6 @@ function markBreweries() {
             else {
                 // Append the openAtm div to the infoDisplay
                 $("#infoDisplay").append(openAtm);
-                // Count the number of divs inside the openAtm div
-                let openCount = $("#openAtm .brewery").length;
-                // If there are no open breweries...
-                if (openCount === 0) {
-                    // Display a message to that effect inside the info display
-                    $("#infoDisplay").prepend($("<h1>Nobody's open at this hour!</h1>"))
-                }
                 // Create a button that will let users expand the information window to show closed breweries
                 let displayToggle = $("<button>");
                 // Apply a class and an id to the button
@@ -424,6 +402,8 @@ function setLocationQuery() {
 function listBreweries(i) {
     // If the brewery at the current index has an openNow property of true...
     if (breweries[i].openNow) {
+        // Increment the openCount
+        openCount++;
         // Create a new open brewery div
         let newDiv = $("<div>");
         // Give the new div classes relevant to its status as an open brewery
@@ -460,9 +440,6 @@ function listBreweries(i) {
 
 // Button click event to initiate the search
 $("#btnSubmit").on("click", function () {
-    // Get rid of any existing displayToggle buttons and open/closed display divs
-    $("#infoDisplay").empty();
-    $("#displayToggle").remove();
     //Clear open/closed divs before populating
     openAtm.empty();
     closedAtm.empty();
