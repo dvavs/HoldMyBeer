@@ -78,7 +78,17 @@ function initMap() {
         ['address_components', 'geometry', 'icon', 'name']);
     // Autocomplete listener to trigger map movement based on new location
     autocomplete.addListener("place_changed", function () {
+        //need to clear the pins when place changed.
+        if (mainMarker !== undefined) {
+            mainMarker.setMap(null);   
+        }
+        clearMarkers();
+
+        //clear out the list of previous breweries
+        $("#infoDisplay").empty();
+
         // Set the place variable equal to the user's suggestion
+
         place = autocomplete.getPlace();
         // Clear the marker from any possible previous locations selected
         console.log("place");
