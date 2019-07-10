@@ -38,8 +38,9 @@ let googleCallNum = 0;
 // Index variable to count through the brewMarks and breweries variables in context where a for loop is impossible
 let brewIndex = 0;
 
-// Counter variable for number of open breweries, to use for "nobody is open right now" message display testing
-let openCount = 0;
+
+// Variable to exclude those that are currently closed
+let excludeClosed = true;
 
 // Callback function from the map script at the end
 function initMap() {
@@ -59,15 +60,15 @@ function initMap() {
     let input = document.getElementById('pac-input');
     // Set up the autocomplete functionality for the address input
     let autocomplete = new google.maps.places.Autocomplete(input);
-    // Set initial restrict to the greater list of countries.
+    // Set initial restrict to the greater list of countries
     autocomplete.setComponentRestrictions(
         { 'country': ['us'] });
-    // Specify only the data fields that are needed.
+    // Specify only the data fields that are needed
     autocomplete.setFields(
         ['address_components', 'geometry', 'icon', 'name']);
     // Autocomplete listener to trigger map movement based on new location
     autocomplete.addListener("place_changed", function () {
-        //need to clear the pins when place changed.
+        // Clear the pins when place is changed
         if (mainMarker !== undefined) {
             mainMarker.setMap(null);
         }
@@ -92,7 +93,7 @@ function initMap() {
         // Otherwise, it must have geometry, so...
         else {
             // Change the map so that it shows that place
-            // If the place has a geometry, then present it on a map.
+            // If the place has a geometry, then present it on a map
             if (place.geometry.viewport) {
                 map.fitBounds(place.geometry.viewport);
             } else {
@@ -155,6 +156,12 @@ function brewerySizeFilter() {
     }
     // Console log the size array to test
     console.log(brewerySize);
+
+    // Need to see if they don't want to see those closed.
+    $(".excludeclosed").each(function () {
+        //console.log("closed checked: " + $(this).prop("checked"))
+        excludeClosed = $(this).prop("checked");
+    });
 }
 
 // Function to retrieve the breweries from our APIs and mark them on the map
@@ -240,24 +247,31 @@ function markBreweries() {
                                         }
                                     }
                                 }
-                                console.log("skip this? " + skipThis);
+                                //console.log("skip this? " + skipThis);
+
+                                // Create variables for elements that may not exist and default so all tags have values
+                                let openNowVar = false;
+                                let ratingVar = "N/A";
+                                // Make sure the open hours parent property exists, and the child
+                                if (googleResp.candidates[googleIndex].hasOwnProperty('opening_hours') && googleResp.candidates[googleIndex].opening_hours.hasOwnProperty('open_now')) {
+                                    // If so, change the openNowVar to reflect the information
+                                    openNowVar = googleResp.candidates[googleIndex].opening_hours.open_now;
+                                }
+                                // Make sure the rating property exists
+                                if (googleResp.candidates[googleIndex].hasOwnProperty('rating')) {
+                                    // If so, change the ratingVar to reflect the information
+                                    ratingVar = googleResp.candidates[googleIndex].rating;
+                                }
+                                //if it's not currently open and they want to exclude the closed
+                                if (!openNowVar && excludeClosed) {
+                                    skipThis = true;
+                                }
+
                                 // If skipThis isn't changed to be true after checking whether the current response is a duplicate...
                                 if (!skipThis) {
                                     // Create a brewNum variable so the map number label for the brewery can be put inside its object
                                     let brewNum = brewIndex + 1
-                                    // Create variables for elements that may not exist and default so all tags have values
-                                    let openNowVar = false;
-                                    let ratingVar = "N/A";
-                                    // Make sure the open hours parent property exists, and the child
-                                    if (googleResp.candidates[googleIndex].hasOwnProperty('opening_hours') && googleResp.candidates[googleIndex].opening_hours.hasOwnProperty('open_now')) {
-                                        // If so, change the openNowVar to reflect the information
-                                        openNowVar = googleResp.candidates[googleIndex].opening_hours.open_now;
-                                    }
-                                    // Make sure the rating property exists
-                                    if (googleResp.candidates[googleIndex].hasOwnProperty('rating')) {
-                                        // If so, change the ratingVar to reflect the information
-                                        ratingVar = googleResp.candidates[googleIndex].rating;
-                                    }
+
                                     // Create an object, fill it with the information from each API that we need
                                     let newBrew = {
                                         // Map number (equal to the current brew index +1)
@@ -346,6 +360,7 @@ function markBreweries() {
             // Now that the loop through the BrewResp is over
             // If the googleCallNum is still equal to zero...
             if (googleCallNum === 0) {
+
                 // That means we got no hits on the user's search parameters
                 // So show an error message to that effect
                 $("#error-modal").addClass("is-active");
@@ -356,20 +371,9 @@ function markBreweries() {
             }
             // Otherwise, there is at least one brewery on the list, so...
             else {
-                // Append the openAtm div to the infoDisplay
+                // Append the openAtm and closedAtm divs to the infoDisplay
                 $("#infoDisplay").append(openAtm);
-                // Create a button that will let users expand the information window to show closed breweries
-                let displayToggle = $("<button>");
-                // Apply a class and an id to the button
-                displayToggle.attr("class", "button is-warning")
-                displayToggle.attr("id", "displayToggle");
-                // Give it a data attribute that indicates whether the closed breweries are currently shown
-                displayToggle.attr("data-state", "hidden");
-                // Give it some text to describe what its function is
-                displayToggle.text("Show who's closed right now");
-                // Append the button to the bottom of the dataOutput column so it's always at the bottom
-                // whether the closed breweries are shown or not
-                $("#dataOutput").append(displayToggle);
+                $("#infoDisplay").append(closedAtm);
             }
         });
 };
@@ -440,42 +444,31 @@ function listBreweries(i) {
 
 // Button click event to initiate the search
 $("#btnSubmit").on("click", function () {
-    //Clear open/closed divs before populating
-    openAtm.empty();
-    closedAtm.empty();
-    // See if the user selected certain brewery types
-    brewerySizeFilter();
-    // Put the brewery markers on the map
-    markBreweries();
-    //if an address is selected, let's zoom out so we can see the breweries.
-    console.log("zoom 3: " + map.getZoom())
-});
-
-// Button click event to toggle display for the list of breweries currently closed
-$(document).on("click", "#displayToggle", function () {
-    // If the data-state attribute says that the closed breweries are hidden...
-    if ($(this).attr("data-state") === "hidden") {
-        // Append the closedAtm div to the infoDisplay
-        $("#infoDisplay").append(closedAtm);
-        // Change the button text to indicate that it can be pressed again to hide the closed breweries
-        $(this).text("Hide who's closed right now");
-        // Change the data-state attribute to reflect that the closed breweries are now visible
-        $(this).attr("data-state", "visible");
+    // Make sure they entered at least a state
+    if ($("#pac-input").val().trim() == "" || state == "") {
+        $("#error-modal").addClass("is-active");
+        $("#error-msg").html('<p>Please select a city and state.</p>')
     }
-    // Otherwise, the breweries must already be showing, so...
     else {
-        // Remove the closedAtm div from the dom
-        $("#closedAtm").remove();
-        // Change the button text to indicate that it can be pressed again to show the closed breweries
-        $(this).text("Show who's closed right now");
-        // Change the data-state attribute to reflect that the closed breweries are now hidden
-        $(this).attr("data-state", "hidden");
+        // Get rid of any existing displayToggle buttons and open/closed display divs
+        $("#infoDisplay").empty();
+
+        //    $("#displayToggle").remove();
+        //Clear open/closed divs before populating
+        openAtm.empty();
+        closedAtm.empty();
+
+        // See if the user selected certain brewery types
+        brewerySizeFilter();
+        // Put the brewery markers on the map
+        markBreweries();
+
     }
-})
+});
 
 // Button click event for close-modal buttons
 $(".delete").on("click", function () {
     // Whatever modal is open, close it on click of a modal-close button
     $("#error-modal").attr("class", "modal");
-    $("#marker-modal").attr("class", "modal");
+    // $("#marker-modal").attr("class", "modal");
 });
