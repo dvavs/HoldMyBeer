@@ -51,6 +51,25 @@
   border-radius: 5px;
 }
 
+/* Error modal window */
+.modal-card-head {
+  color: hsl(0, 71%, 8%);
+  background-color: hsl(48, 100%, 67%);
+  font-size: 20px;
+  font-weight: 500;
+  padding-left: 15px;
+  border-radius: 5px 5px 0 0;
+}
+
+#error-msg {
+  background-color: #fff;
+  border-radius: 0 0 5px 5px;
+}
+
+.modal-background {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
 /*Results*/
 #infoDisplay {
   margin: 20px 0 0 5px;
