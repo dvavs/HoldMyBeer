@@ -38,6 +38,10 @@ let googleCallNum = 0;
 // Index variable to count through the brewMarks and breweries variables in context where a for loop is impossible
 let brewIndex = 0;
 
+//variable to exclude those that are currently closed
+
+let excludeClosed = true;
+
 // Generic function to find an object within an array by a specific key:value pair
 // Pass in the name of the array, the key you want to test, and the value you want to test for
 function findObjectByKey(array, key, value) {
@@ -80,7 +84,7 @@ function initMap() {
     autocomplete.addListener("place_changed", function () {
         //need to clear the pins when place changed.
         if (mainMarker !== undefined) {
-            mainMarker.setMap(null);   
+            mainMarker.setMap(null);
         }
         clearMarkers();
 
@@ -168,6 +172,12 @@ function brewerySizeFilter() {
     }
     // Console log the size array to test
     console.log(brewerySize);
+
+    //need to see if they don't want to see those closed.
+    $(".excludeclosed").each(function () {
+        //console.log("closed checked: " + $(this).prop("checked"))
+        excludeClosed = $(this).prop("checked");
+    });
 }
 
 // Function to retrieve the breweries from our APIs and mark them on the map
@@ -255,24 +265,32 @@ function markBreweries() {
                                         }
                                     }
                                 }
-                                console.log("skip this? " + skipThis);
+                                //console.log("skip this? " + skipThis);
+
+
+                                // Create variables for elements that may not exist and default so all tags have values
+                                let openNowVar = false;
+                                let ratingVar = "N/A";
+                                // Make sure the open hours parent property exists, and the child
+                                if (googleResp.candidates[googleIndex].hasOwnProperty('opening_hours') && googleResp.candidates[googleIndex].opening_hours.hasOwnProperty('open_now')) {
+                                    // If so, change the openNowVar to reflect the information
+                                    openNowVar = googleResp.candidates[googleIndex].opening_hours.open_now;
+                                }
+                                // Make sure the rating property exists
+                                if (googleResp.candidates[googleIndex].hasOwnProperty('rating')) {
+                                    // If so, change the ratingVar to reflect the information
+                                    ratingVar = googleResp.candidates[googleIndex].rating;
+                                }
+                                //if it's not currently open and they want to exclude the closed
+                                if (!openNowVar && excludeClosed) {
+                                    skipThis = true;
+                                }
+
                                 // If skipThis isn't changed to be true after checking whether the current response is a duplicate...
                                 if (!skipThis) {
                                     // Create a brewNum variable so the map number label for the brewery can be put inside its object
                                     let brewNum = brewIndex + 1
-                                    // Create variables for elements that may not exist and default so all tags have values
-                                    let openNowVar = false;
-                                    let ratingVar = "N/A";
-                                    // Make sure the open hours parent property exists, and the child
-                                    if (googleResp.candidates[googleIndex].hasOwnProperty('opening_hours') && googleResp.candidates[googleIndex].opening_hours.hasOwnProperty('open_now')) {
-                                        // If so, change the openNowVar to reflect the information
-                                        openNowVar = googleResp.candidates[googleIndex].opening_hours.open_now;
-                                    }
-                                    // Make sure the rating property exists
-                                    if (googleResp.candidates[googleIndex].hasOwnProperty('rating')) {
-                                        // If so, change the ratingVar to reflect the information
-                                        ratingVar = googleResp.candidates[googleIndex].rating;
-                                    }
+
                                     // Create an object, fill it with the information from each API that we need
                                     let newBrew = {
                                         // Map number (equal to the current brew index +1)
@@ -311,7 +329,7 @@ function markBreweries() {
                                     // GOOGLE INFO WINDOW DISPLAY ON CLICK
                                     // Seems like the better option to go with to me - not as stylized but better functionality
                                     // Stipulate the content for the info window
-                                    let openStr = function(obj) {
+                                    let openStr = function (obj) {
                                         if (obj.open) {
                                             return "Open right now";
                                         } else {
@@ -361,6 +379,7 @@ function markBreweries() {
             // Now that the loop through the BrewResp is over
             // If the googleCallNum is still equal to zero...
             if (googleCallNum === 0) {
+
                 // That means we got no hits on the user's search parameters
                 // So show an error message to that effect
                 $("#error-modal").addClass("is-active");
@@ -374,24 +393,27 @@ function markBreweries() {
                 // Append the openAtm div to the infoDisplay
                 $("#infoDisplay").append(openAtm);
                 // Count the number of divs inside the openAtm div
+                /*not currently working, remove for now
                 let openCount = $("#openAtm .brewery").length;
                 // If there are no open breweries...
-                if (openCount === 0) {
+                //if (openCount === 0) {
                     // Display a message to that effect inside the info display
                     $("#infoDisplay").prepend($("<h1>Nobody's open at this hour!</h1>"))
                 }
+                */
+                //not going to use this functionality  clean up later.
                 // Create a button that will let users expand the information window to show closed breweries
-                let displayToggle = $("<button>");
-                // Apply a class and an id to the button
-                displayToggle.attr("class", "button is-warning")
-                displayToggle.attr("id", "displayToggle");
-                // Give it a data attribute that indicates whether the closed breweries are currently shown
-                displayToggle.attr("data-state", "hidden");
-                // Give it some text to describe what its function is
-                displayToggle.text("Show who's closed right now");
-                // Append the button to the bottom of the dataOutput column so it's always at the bottom
-                // whether the closed breweries are shown or not
-                $("#dataOutput").append(displayToggle);
+                /*             let displayToggle = $("<button>");
+                                // Apply a class and an id to the button
+                                displayToggle.attr("class", "button is-warning")
+                                displayToggle.attr("id", "displayToggle");
+                                // Give it a data attribute that indicates whether the closed breweries are currently shown
+                                displayToggle.attr("data-state", "hidden");
+                                // Give it some text to describe what its function is
+                                displayToggle.text("Show who's closed right now");
+                                // Append the button to the bottom of the dataOutput column so it's always at the bottom
+                                // whether the closed breweries are shown or not
+                                $("#dataOutput").append(displayToggle);*/
             }
         });
 };
@@ -454,28 +476,37 @@ function listBreweries(i) {
             <div class="column"><p>Address:</p><p>${breweries[i].address}</p></div>
             </div>`)
         // Append this newDiv to the openAtm div
-        closedAtm.append(newDiv);
+        openAtm.append(newDiv);
     }
 }
 
 // Button click event to initiate the search
 $("#btnSubmit").on("click", function () {
-    // Get rid of any existing displayToggle buttons and open/closed display divs
-    $("#infoDisplay").empty();
-    $("#displayToggle").remove();
-    //Clear open/closed divs before populating
-    openAtm.empty();
-    closedAtm.empty();
-    // See if the user selected certain brewery types
-    brewerySizeFilter();
-    // Put the brewery markers on the map
-    markBreweries();
-    //if an address is selected, let's zoom out so we can see the breweries.
-    console.log("zoom 3: " + map.getZoom())
+
+    //need to make sure they entered something in
+    if ($("#pac-input").val().trim() == "") {
+        $("#error-modal").addClass("is-active");
+        $("#error-msg").html('<p>Please select a city and state.</p>')
+    }
+    else {
+        // Get rid of any existing displayToggle buttons and open/closed display divs
+        $("#infoDisplay").empty();
+
+        //    $("#displayToggle").remove();
+        //Clear open/closed divs before populating
+        openAtm.empty();
+        closedAtm.empty();
+
+        // See if the user selected certain brewery types
+        brewerySizeFilter();
+        // Put the brewery markers on the map
+        markBreweries();
+        //if an address is selected, let's zoom out so we can see the breweries.
+    }
 });
 
 // Button click event to toggle display for the list of breweries currently closed
-$(document).on("click", "#displayToggle", function () {
+/*$(document).on("click", "#displayToggle", function () {
     // If the data-state attribute says that the closed breweries are hidden...
     if ($(this).attr("data-state") === "hidden") {
         // Append the closedAtm div to the infoDisplay
@@ -494,7 +525,7 @@ $(document).on("click", "#displayToggle", function () {
         // Change the data-state attribute to reflect that the closed breweries are now hidden
         $(this).attr("data-state", "hidden");
     }
-})
+})*/
 
 // Button click event for close-modal buttons
 $(".delete").on("click", function () {
