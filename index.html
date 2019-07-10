@@ -79,7 +79,17 @@
                 </form>
                 <a class="button is-warning" id="btnSubmit">Submit</a>
             </div>
+            
+            <!-- If the user enters an incomplete city/state, a modal window will appear -->
+            <div class="modal">
+                <div class="modal-background"></div>
+                <div class="modal-content">
+                </div>
+                <button class="modal-close" aria-label="close"></button>
+                <!--If message too big or small, we can add "is-small, medium,... to "modal-close"-->
+            </div>
 
+            <!--Map-->
             <div class="column" id="dataOutput">
                 <div id="map">
                 </div>
