@@ -51,6 +51,13 @@
   border-radius: 5px;
 }
 
+/* Info window */
+#infoWindowTitle {
+  font-weight: bold;
+  color: hsl(0, 71%, 8%);
+  font-size: 18px;
+}
+
 /* Error modal window */
 .modal-card-head {
   color: hsl(0, 71%, 8%);
@@ -94,11 +101,11 @@
   margin-bottom: 30px;
   color: hsl(0, 71%, 8%);
 }
-#open {
+.open {
   color: rgb(15, 175, 15);
   font-weight: 700;
 }
-#closed {
+.closed {
   color: rgb(243, 50, 76);
   font-weight: 700;
 }

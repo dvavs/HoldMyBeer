@@ -39,7 +39,7 @@
     <div class="box">
         <div class="columns">
             <div class="column" id="parameterSelect">
-                <h2>Where are you going?</h2>
+                <h2>Where are you looking?</h2>
                 <div class="pac-card" id="pac-card">
                     <div>
                         <div id="title">
@@ -80,31 +80,28 @@
                 <a class="button is-warning" id="btnSubmit">Submit</a>
             </div>
 
-            <!-- If the user enters an incomplete city/state, a modal window will appear. I commented this out but wanted to keep it until we get the card version working.
-
-            <div id="error-modal" class="modal">
-                <div class="modal-background"></div>
-                <div class="modal-card" id="error-card">
-                    <div id="error-header" class="modal-card-head">
-                        <p class="modal-card-title">There was a problem!</p>
-                    </div>
-                    <section id="error-msg" class="modal-content card-content">
-                    </section>
-                <button class="modal-close is-large"></button>                    
-                </div>
-            </div>-->
-
             <!--Card style Error Modal window. This brings the X in the header but needs to have an on.click function applied to it -->
             <div class="modal" id="error-modal">
                 <div class="modal-background"></div>
                 <div class="modal-card">
-                  <header class="modal-card-head" >
-                    <p class="modal-card-title">There was a problem!</p>
-                    <button class="delete"></button>
-                  </header>
-                  <section class="modal-card-body" id="error-msg"></section>
+                    <header class="modal-card-head">
+                        <p class="modal-card-title">There was a problem!</p>
+                        <button class="delete"></button>
+                    </header>
+                    <section class="modal-card-body" id="error-msg"></section>
                 </div>
-              </div>
+            </div>
+
+            <!-- I don't think a modal is going to work very well for this purpose - I couldn't figure out how to position it at the marker that was clicked -->
+            <div class="modal" id="marker-modal">
+                <div class="modal-card">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title" id="marker-title"></p>
+                        <button class="delete"></button>
+                    </header>
+                </div>
+
+            </div>
 
             <!--Map-->
             <div class="column" id="dataOutput">
@@ -121,26 +118,28 @@
                     </header>
                     <div class="card-content">
                         <div class="content">
-                            <div id="infoDisplay"></div>
+                            <div id="infoDisplay">
+                                <p>Nothing yet. Try a search!</p>
+                            </div>
                         </div>
                     </div>
 
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Sticky footer that will never come above the bottom of the page -->
-        <footer>
-            <p>Team Firefoxes</p>
-        </footer>
+    <footer>
+        <p>Team Firefoxes</p>
+    </footer>
 
-        <!-- link to our app-specific JavaScript -->
-        <script src="assets/javascript/logic.js"></script>
+    <!-- link to our app-specific JavaScript -->
+    <script src="assets/javascript/logic.js"></script>
 
-        <!-- link to initialize the map -->
-        <script
-            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU&libraries=places&callback=initMap"
-            async defer></script>
+    <!-- link to initialize the map -->
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdbsiqFxjAUt8-qUuCt4dsHTdnnJSJ3iU&libraries=places&callback=initMap"
+        async defer></script>
 
 </body>
 
