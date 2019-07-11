@@ -261,8 +261,9 @@ function markBreweries() {
                                     // If so, change the ratingVar to reflect the information
                                     ratingVar = googleResp.candidates[googleIndex].rating;
                                 }
-                                // Make sure the phone number exists in the OpenBreweryDB response
-                                if (brewResp[i].hasOwnProperty('phone')) {
+                                // Make sure the phone number exists in the OpenBreweryDB response, if it does...
+                                if (brewResp[i].phone !== "") {
+                                    // Format the phoneVar to display like a real phone number
                                     phoneVar = "(" + brewResp[i].phone.slice(0, 3) + ") " + brewResp[i].phone.slice(3, 6) + "-" + brewResp[i].phone.slice(6);
                                 }
                                 //if it's not currently open and they want to exclude the closed
