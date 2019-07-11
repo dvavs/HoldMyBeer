@@ -38,9 +38,17 @@ let googleCallNum = 0;
 // Index variable to count through the brewMarks and breweries variables in context where a for loop is impossible
 let brewIndex = 0;
 
-
 // Variable to exclude those that are currently closed
 let excludeClosed = true;
+
+// Generic function to pull the open/closed status of a brewery from its object and return a string
+let openStr = function (obj) {
+    if (obj.openNow) {
+        return "Open now";
+    } else {
+        return "Closed now";
+    }
+};
 
 // Callback function from the map script at the end
 function initMap() {
@@ -72,23 +80,23 @@ function initMap() {
         if (mainMarker !== undefined) {
             mainMarker.setMap(null);
         }
+        // Clear the marker from any possible previous locations selected
         clearMarkers();
         // Get rid of any existing displayToggle buttons and open/closed display divs
         $("#infoDisplay").empty();
         $("#displayToggle").remove();
         // Set the place variable equal to the user's suggestion
         place = autocomplete.getPlace();
-        // Clear the marker from any possible previous locations selected
-        console.log("place");
-        console.log(place);
         // If the place has no geometry...
         if (!place.geometry) {
-            // User entered the name of a Place that was not suggested and
-            // pressed the Enter key, or the Place Details request failed
+            // User entered the name of a Place that was not suggested and pressed the Enter key, or the Place Details request failed
+            // Display an error message telling the user
             $("#error-modal").addClass("is-active");
             $("#error-msg").html(`<p>No location was returned for your input: ${place.name}.</p>
             <p>Please select from one of the autocomplete suggestions.</p>`)
-            return;
+            // Re-apply the original message that appears in the info display
+            $("#infoDisplay").prepend("<p>Nothing yet. Try a search!</p>")
+
         }
         // Otherwise, it must have geometry, so...
         else {
@@ -98,9 +106,8 @@ function initMap() {
                 map.fitBounds(place.geometry.viewport);
             } else {
                 map.setCenter(place.geometry.location);
-                map.setZoom(17);  // Why 17? Because it looks good.
+                map.setZoom(17);
             }
-            console.log("zoom: " + map.getZoom());
             // Format the main marker object to hold data relevant to the selected location
             mainMarker = new google.maps.Marker({
                 map: map,
@@ -112,7 +119,6 @@ function initMap() {
             mainMarker.setPosition(place.geometry.location);
             // Call the setMap method again to make the new main marker appear
             mainMarker.setMap(map);
-            console.log("zoom1: " + map.getZoom())
         }
         // Then pull the relevant city/state data from the user query
         getCityState(place);
@@ -137,7 +143,7 @@ function getCityState(place) {
 }
 
 // Function to filter by brewery sizes selected (or to allow the default if none selected)
-function brewerySizeFilter() {
+function filterBreweries() {
     // Make sure the brewerySize array is empty before checking for selections and pushing them in
     brewerySize = [];
     // For each of the size selection checkboxes...
@@ -154,12 +160,8 @@ function brewerySizeFilter() {
         // This hardcode prevents inclusion of breweries with types we don't want (i.e., planning, bar, proprietor, contract)
         brewerySize = ["brewpub", "micro", "regional", "large"];
     }
-    // Console log the size array to test
-    console.log(brewerySize);
-
-    // Need to see if they don't want to see those closed.
-    $(".excludeclosed").each(function () {
-        //console.log("closed checked: " + $(this).prop("checked"))
+    // Look to see whether they've chosen to exclude closed breweries
+    $(".excludeClosed").each(function () {
         excludeClosed = $(this).prop("checked");
     });
 }
@@ -175,6 +177,8 @@ function markBreweries() {
     // Reset the openCount so we can start counting up from 0 again
     openCount = 0;
     // Clear any markers that have already been placed on the map
+    clearMarkers();
+    // Set up the location to be used in the ajax call
     setLocationQuery();
     // Then set the general queryURL for the OpenBreweryDB API - limit to 20
     let queryURL = "https://api.openbrewerydb.org/breweries?per_page=50"
@@ -189,7 +193,6 @@ function markBreweries() {
     })
         // When the ajax call returns...
         .done(function (brewResp) {
-            console.log(brewResp);
             // Loop through the breweries returned one at a time...
             for (let i = 0; i < brewResp.length; i++) {
                 // If the brewery's size property can be found inside the array of sizes (either specified by user or auto populated if they specified none)
@@ -236,9 +239,6 @@ function markBreweries() {
                                         if (googleResp.candidates[newIndex] !== undefined) {
                                             // Change the google index
                                             googleIndex = newIndex;
-                                            // This isn't the perfect solution because it assumes that the second option is not a duplicate
-                                            // But it works for the edge cases we've encountered (haven't seen more than 2 entries)
-                                            // Couldn't figure out how to do this in its own self-reiterating function because it got mad that the googleIndex wasn't defined at that level
                                         }
                                         // If there isn't another candidate to choose from...
                                         else {
@@ -247,31 +247,32 @@ function markBreweries() {
                                         }
                                     }
                                 }
-                                //console.log("skip this? " + skipThis);
-
                                 // Create variables for elements that may not exist and default so all tags have values
                                 let openNowVar = false;
                                 let ratingVar = "N/A";
-                                // Make sure the open hours parent property exists, and the child
+                                let phoneVar = "";
+                                // Make sure the open hours parent property and the child exist in the Google response
                                 if (googleResp.candidates[googleIndex].hasOwnProperty('opening_hours') && googleResp.candidates[googleIndex].opening_hours.hasOwnProperty('open_now')) {
                                     // If so, change the openNowVar to reflect the information
                                     openNowVar = googleResp.candidates[googleIndex].opening_hours.open_now;
                                 }
-                                // Make sure the rating property exists
+                                // Make sure the rating property exists in the Google response
                                 if (googleResp.candidates[googleIndex].hasOwnProperty('rating')) {
                                     // If so, change the ratingVar to reflect the information
                                     ratingVar = googleResp.candidates[googleIndex].rating;
+                                }
+                                // Make sure the phone number exists in the OpenBreweryDB response
+                                if (brewResp[i].hasOwnProperty('phone')) {
+                                    phoneVar = "(" + brewResp[i].phone.slice(0, 3) + ") " + brewResp[i].phone.slice(3, 6) + "-" + brewResp[i].phone.slice(6);
                                 }
                                 //if it's not currently open and they want to exclude the closed
                                 if (!openNowVar && excludeClosed) {
                                     skipThis = true;
                                 }
-
                                 // If skipThis isn't changed to be true after checking whether the current response is a duplicate...
                                 if (!skipThis) {
                                     // Create a brewNum variable so the map number label for the brewery can be put inside its object
                                     let brewNum = brewIndex + 1
-
                                     // Create an object, fill it with the information from each API that we need
                                     let newBrew = {
                                         // Map number (equal to the current brew index +1)
@@ -282,6 +283,8 @@ function markBreweries() {
                                         type: brewResp[i].brewery_type,
                                         // Website (from the OpenBreweryDB website_url property)
                                         website: brewResp[i].website_url,
+                                        // Phone number (from the OpenBreweryDB phone property)
+                                        phone: phoneVar,
                                         // Address (from the Google formatted_address property)
                                         address: googleResp.candidates[googleIndex].formatted_address,
                                         // Rating (from the Google rating property)
@@ -307,22 +310,20 @@ function markBreweries() {
                                         title: breweries[brewIndex].name,
                                         label: brewNum.toString()
                                     });
-                                    // GOOGLE INFO WINDOW DISPLAY ON CLICK
-                                    // Seems like the better option to go with to me - not as stylized but better functionality
                                     // Stipulate the content for the info window
-                                    let openStr = function (obj) {
-                                        if (obj.open) {
-                                            return "Open right now";
-                                        } else {
-                                            return "Closed right now";
-                                        }
-                                    };
                                     let infoContent = `<div id="infoWindow">
                                     <div id="infoWindowTitle">${newBrew.name}</div>
-                                    <div id="infoWindowContent">
-                                    <p>${openStr(newBrew)}</p>
-                                    <p><a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${newBrew.address}&dir_action=navigate">Get directions</a>
-                                    </div>
+                                        <div class="columns" id="infoWindowContent">
+                                            <div class="column">
+                                                <p><strong>${openStr(newBrew)}</strong></p>
+                                                <p>${newBrew.phone}</p>
+                                                <p><a target="_blank" href="${newBrew.website}">Website</a><p>
+                                            </div>
+                                            <div class="column">
+                                                <p>${newBrew.address}</p>
+                                                <p><a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${newBrew.address}&dir_action=navigate">Get directions</a>
+                                            </div>
+                                        </div>
                                     </div>`;
                                     let infoWindow = new google.maps.InfoWindow({
                                         content: infoContent
@@ -331,27 +332,11 @@ function markBreweries() {
                                     google.maps.event.addListener(brewMarks[brewIndex], 'click', function () {
                                         // Call the info window associated with this marker
                                         infoWindow.open(map, this)
-
-
-                                        // MODAL DISPLAY ON CLICK
-                                        // Commented out because I couldn't figure out how to move the modal - so might not be our best option
-
-                                        // // Set the text for the header of the modal to show the brewery name
-                                        // $("#marker-title").text(newBrew.name);
-                                        // // Set the css of the modal to position its bottom right corner at the place where the click occurred
-                                        // $("#marker-modal").css({
-                                        //     bottom: event.pageY,
-                                        //     right: event.pageX
-                                        // })
-                                        // // Give the modal a class is-active so it displays on the screen
-                                        // $("#marker-modal").addClass("is-active");
                                     });
                                     // Add the brewery to the list
                                     listBreweries(brewIndex);
                                     // Increment the brewIndex to so the next go round will use the right index for reference
                                     brewIndex++;
-                                    // Console log the set of breweries that should be displayed to test
-                                    console.log(breweries);
                                 }
                             }
                         });
@@ -360,7 +345,6 @@ function markBreweries() {
             // Now that the loop through the BrewResp is over
             // If the googleCallNum is still equal to zero...
             if (googleCallNum === 0) {
-
                 // That means we got no hits on the user's search parameters
                 // So show an error message to that effect
                 $("#error-modal").addClass("is-active");
@@ -444,31 +428,31 @@ function listBreweries(i) {
 
 // Button click event to initiate the search
 $("#btnSubmit").on("click", function () {
-    // Make sure they entered at least a state
-    if ($("#pac-input").val().trim() == "" || state == "") {
+    // Get rid of any existing open/closed display divs
+    $("#infoDisplay").empty();
+    //Get rid of any existing brewery markers
+    clearMarkers();
+    // Make sure they entered at least a state, if not...
+    if ($("#pac-input").val().trim() === "" || state === "") {
+        // Send them an error message instructing them to do so
         $("#error-modal").addClass("is-active");
         $("#error-msg").html('<p>Please select a city and state.</p>')
+        // Re-apply the original message that appears in the info display
+        $("#infoDisplay").prepend("<p>Nothing yet. Try a search!</p>")
     }
     else {
-        // Get rid of any existing displayToggle buttons and open/closed display divs
-        $("#infoDisplay").empty();
-
-        //    $("#displayToggle").remove();
         //Clear open/closed divs before populating
         openAtm.empty();
         closedAtm.empty();
-
         // See if the user selected certain brewery types
-        brewerySizeFilter();
+        filterBreweries();
         // Put the brewery markers on the map
         markBreweries();
-
     }
 });
 
-// Button click event for close-modal buttons
+// Button click event for delete buttons (modals)
 $(".delete").on("click", function () {
-    // Whatever modal is open, close it on click of a modal-close button
+    // Whatever modal is open, close it
     $("#error-modal").attr("class", "modal");
-    // $("#marker-modal").attr("class", "modal");
 });

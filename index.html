@@ -30,7 +30,7 @@
                     Hold My Beer!
                 </h1>
                 <h2 class="subtitle" id="subtitle">
-                    Wherever you go, wherever you are. Find the perfect brewery - near or far.
+                    Wherever you're going, wherever you are. Find the perfect brewery - near or far.
                 </h2>
             </div>
         </div>
@@ -77,9 +77,9 @@
                         </div>
                     </div>
                     <br>
-                    <div class="custom-control custom-checkbox" id="excludeclosed">
-                        <input type="checkbox" class="custom-control-input excludeclosed" id="brewpub">
-                        <label class="custom-control-label" for="excludeclosed">Exclude Closed Breweries</label>
+                    <div class="custom-control custom-checkbox" id="checkExcludeClosed">
+                        <input type="checkbox" class="custom-control-input excludeClosed" id="excludeClosed">
+                        <label class="custom-control-label" for="excludeClosed">Exclude Closed Breweries</label>
                     </div>
                 </form>
                 <a class="button is-warning" id="btnSubmit">Submit</a>
@@ -95,17 +95,6 @@
                     </header>
                     <section class="modal-card-body" id="error-msg"></section>
                 </div>
-            </div>
-
-            <!-- I don't think a modal is going to work very well for this purpose - I couldn't figure out how to position it at the marker that was clicked -->
-            <div class="modal" id="marker-modal">
-                <div class="modal-card">
-                    <header class="modal-card-head">
-                        <p class="modal-card-title" id="marker-title"></p>
-                        <button class="delete"></button>
-                    </header>
-                </div>
-
             </div>
 
             <!--Map-->
